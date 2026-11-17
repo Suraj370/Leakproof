@@ -148,9 +148,10 @@ func NetYield(c Card, monthly Spend, holdFee bool) CardYield {
 	return y
 }
 
-// Allocate splits each category's spend across cards in Rs500 chunks, always to the card with the best
-// marginal reward given its remaining cap. It is a marginal-greedy heuristic, not a proof of optimality.
-func Allocate(cards []Card, spend Spend) map[string]Spend {
+// allocateGreedy splits each category's spend across cards in Rs500 chunks, always to the card with the best
+// marginal reward given its remaining cap. It is a heuristic (it ignores milestones and can misuse a shared
+// cap); allocate() in solve.go runs it only as a safety net and fallback behind the exact LP solver.
+func allocateGreedy(cards []Card, spend Spend) map[string]Spend {
 	const chunk = 50_000
 	out := map[string]Spend{}
 	used := map[string]map[string]int64{}
@@ -188,8 +189,11 @@ func Allocate(cards []Card, spend Spend) map[string]Spend {
 	return out
 }
 
+// Allocate returns the best split of the monthly spend across these cards (exact up to point rounding).
+func Allocate(cards []Card, spend Spend) map[string]Spend { return allocate(cards, spend, false) }
+
 func evaluate(cards []Card, spend Spend, held bool) (int64, []CardYield) {
-	alloc := Allocate(cards, spend)
+	alloc := allocate(cards, spend, held)
 	var net int64
 	ys := make([]CardYield, 0, len(cards))
 	for _, c := range cards {
@@ -211,7 +215,10 @@ type ComboResult struct {
 	GainPaise     int64       `json:"netAnnualRupeesGainedPaise"`
 }
 
-// BestCombo tries every 1-card and 2-card subset of the catalog and compares against `current`.
+// BestCombo finds the best 1- or 2-card combination of the catalog and compares it with the wallet in current.
+// Every combination gets an upper bound (an LP relaxation); they are then solved exactly in descending
+// bound order and the search stops as soon as the next bound cannot beat the best exact value found.
+// Ties go to the combination that comes first in catalog order, so the answer is deterministic.
 func BestCombo(catalog, current []Card, spend Spend) ComboResult {
 	base, _ := evaluate(current, spend, true)
 	res := ComboResult{BaselinePaise: base, CardIDs: []string{}, Yields: []CardYield{}}
@@ -219,19 +226,43 @@ func BestCombo(catalog, current []Card, spend Spend) ComboResult {
 		res.NetPaise = base
 		return res
 	}
-	res.NetPaise = -1 << 62
-	try := func(cs ...Card) {
-		if n, ys := evaluate(cs, spend, false); n > res.NetPaise {
-			res.NetPaise, res.Yields, res.CardIDs = n, ys, nil
-			for _, c := range cs {
-				res.CardIDs = append(res.CardIDs, c.ID)
-			}
+
+	type cand struct {
+		idx   []int
+		ub    float64
+		order int
+	}
+	var cands []cand
+	add := func(idx ...int) {
+		cs := make([]Card, len(idx))
+		for k, i := range idx {
+			cs[k] = catalog[i]
 		}
+		cands = append(cands, cand{idx, upperBound(cs, spend), len(cands)})
 	}
 	for i := range catalog {
-		try(catalog[i])
+		add(i)
 		for j := i + 1; j < len(catalog); j++ {
-			try(catalog[i], catalog[j])
+			add(i, j)
+		}
+	}
+	sort.SliceStable(cands, func(a, b int) bool { return cands[a].ub > cands[b].ub })
+
+	bestOrder := -1
+	for _, c := range cands {
+		if bestOrder >= 0 && c.ub < float64(res.NetPaise) {
+			break // no remaining combination can beat the best exact value
+		}
+		cs := make([]Card, len(c.idx))
+		for k, i := range c.idx {
+			cs[k] = catalog[i]
+		}
+		n, ys := evaluate(cs, spend, false)
+		if bestOrder < 0 || n > res.NetPaise || (n == res.NetPaise && c.order < bestOrder) {
+			bestOrder, res.NetPaise, res.Yields, res.CardIDs = c.order, n, ys, nil
+			for _, cd := range cs {
+				res.CardIDs = append(res.CardIDs, cd.ID)
+			}
 		}
 	}
 	res.GainPaise = res.NetPaise - base
