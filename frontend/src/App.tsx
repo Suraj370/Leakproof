@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CardSimulator } from './CardSimulator';
-import type { CreditCard, MFReport, Position } from './contracts';
+import type { CASReport, CreditCard, MFReport, Position } from './contracts';
+import { UploadCAS } from './UploadCAS';
 import { ShareButton } from './ShareCard';
 import { useCardSimulator } from './useCardSimulator';
 import { WealthLeakSummary } from './WealthLeakSummary';
@@ -15,6 +16,7 @@ const DEMO: Position[] = [
 export function App() {
   const [catalog, setCatalog] = useState<CreditCard[]>([]);
   const [report, setReport] = useState<MFReport | null>(null);
+  const [notes, setNotes] = useState<CASReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export function App() {
       });
       if (!r.ok) throw new Error(`analyze ${r.status}`);
       setReport((await r.json()) as MFReport);
+      setNotes(null);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -50,9 +53,18 @@ export function App() {
       <CardSimulator catalog={catalog} />
 
       <div className="space-y-4">
+        <UploadCAS onReport={(r) => { setReport(r); setNotes(r); }} />
         <button onClick={runDemo} className="rounded-lg border px-4 py-2 text-sm font-medium">
-          Analyse demo mutual fund portfolio
+          Or analyse a demo mutual fund portfolio
         </button>
+        {notes && (notes.warnings.length > 0 || notes.unmatchedIsins.length > 0) && (
+          <ul className="space-y-1 rounded bg-amber-50 p-3 text-xs text-amber-900">
+            {notes.warnings.map((w) => <li key={w}>{w}</li>)}
+            {notes.unmatchedIsins.length > 0 && (
+              <li>Not in our catalog yet, so skipped: {notes.unmatchedIsins.join(', ')}</li>
+            )}
+          </ul>
+        )}
         {report && <WealthLeakSummary report={report} />}
       </div>
 

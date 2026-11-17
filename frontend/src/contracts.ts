@@ -68,3 +68,9 @@ export interface MFReport {
 
 export interface Lot { purchaseDate: string; units: string; costPaise: Paise; valuePaise: Paise }
 export interface Position { fundIsin: string; folioRef?: string; lots: Lot[] }
+
+export interface CASReport extends MFReport {
+  source: string;
+  warnings: string[];
+  unmatchedIsins: string[];
+}
