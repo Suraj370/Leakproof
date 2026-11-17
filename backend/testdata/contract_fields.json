@@ -1,0 +1,105 @@
+{
+  "BankItem": [
+    "amountPaise",
+    "category",
+    "description"
+  ],
+  "BankSummary": [
+    "lowConfidence",
+    "monthlySpendPaise",
+    "months",
+    "transactions"
+  ],
+  "CASReport": [
+    "annualLeakPaise",
+    "funds",
+    "pairs",
+    "portfolioOverlapBps",
+    "source",
+    "unmatchedIsins",
+    "warnings"
+  ],
+  "CardYield": [
+    "annualRewardPaise",
+    "cardId",
+    "feePaise",
+    "lostToCapsPaise",
+    "netPaise"
+  ],
+  "CategoryRule": [
+    "capGroup",
+    "earnBps",
+    "excluded"
+  ],
+  "CreditCard": [
+    "annualFeePaise",
+    "baseEarnBps",
+    "feeWaiverSpendPaise",
+    "groupCapPoints",
+    "id",
+    "name",
+    "redeemPaisePerPoint",
+    "rules"
+  ],
+  "ExitCost": [
+    "exitLoadPaise",
+    "ltcgTaxPaise",
+    "stcgTaxPaise",
+    "totalPaise"
+  ],
+  "FundSummary": [
+    "isin",
+    "name",
+    "terBps",
+    "valuePaise"
+  ],
+  "Lot": [
+    "costPaise",
+    "purchaseDate",
+    "units",
+    "valuePaise"
+  ],
+  "MFReport": [
+    "annualLeakPaise",
+    "funds",
+    "pairs",
+    "portfolioOverlapBps"
+  ],
+  "PairAction": [
+    "annualSavingPaise",
+    "exitFundIndex",
+    "exitNow",
+    "holdUntil",
+    "keepFundIndex",
+    "verdict"
+  ],
+  "PairResult": [
+    "a",
+    "action",
+    "b",
+    "overlapBps",
+    "shared"
+  ],
+  "Position": [
+    "folioRef",
+    "fundIsin",
+    "lots"
+  ],
+  "SavedScore": [
+    "annualLeakPaise",
+    "cardLeakPaise",
+    "cardRulesetVersion",
+    "expiresAt",
+    "mfLeakPaise",
+    "mfRulesetMonth",
+    "overlapBps",
+    "rewardYieldBps"
+  ],
+  "SharedHolding": [
+    "name",
+    "overlapBps",
+    "stockIsin",
+    "weightABps",
+    "weightBBps"
+  ]
+}
