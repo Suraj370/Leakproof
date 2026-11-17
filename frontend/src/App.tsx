@@ -41,7 +41,7 @@ export function App() {
 
   return (
     <main className="mx-auto max-w-3xl space-y-10 p-4">
-      <h1 className="text-2xl font-bold">Wealth Leak Finder</h1>
+      <h1 className="text-2xl font-bold">Leakproof</h1>
       <p className="text-sm text-slate-600">
         Guest mode: nothing you enter is stored. Fund and card data below is illustrative demo data.
       </p>

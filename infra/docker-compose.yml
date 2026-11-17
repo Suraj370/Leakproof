@@ -1,4 +1,4 @@
-name: wealth-leak-finder
+name: leakproof
 
 services:
   backend:
@@ -26,7 +26,7 @@ services:
     environment:
       POSTGRES_USER: wealth
       POSTGRES_PASSWORD: wealth_dev_only
-      POSTGRES_DB: wealthleak
+      POSTGRES_DB: leakproof
     volumes:
       - ../backend/migrations:/docker-entrypoint-initdb.d:ro
     ports: ["5432:5432"]

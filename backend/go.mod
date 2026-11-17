@@ -1,4 +1,4 @@
-module wealthleak
+module leakproof
 
 go 1.22
 

@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"wealthleak/internal/cards"
-	"wealthleak/internal/mf"
+	"leakproof/internal/cards"
+	"leakproof/internal/mf"
 )
 
 type Server struct {

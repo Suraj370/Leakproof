@@ -1,4 +1,4 @@
-# Wealth Leak Finder
+# Leakproof
 
 Mutual fund overlap / tax-aware consolidation and Indian credit card reward optimiser, framed as
 "annual rupees left on the table". Guest mode only: request bodies are processed in memory and never stored.

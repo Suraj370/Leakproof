@@ -1,8 +1,8 @@
 package api
 
 import (
-	"wealthleak/internal/cards"
-	"wealthleak/internal/mf"
+	"leakproof/internal/cards"
+	"leakproof/internal/mf"
 )
 
 // Catalog is the read-only reference data. In production this is loaded from PostgreSQL (cached in

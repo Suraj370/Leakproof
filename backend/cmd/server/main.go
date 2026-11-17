@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"wealthleak/internal/api"
+	"leakproof/internal/api"
 )
 
 func main() {
@@ -14,6 +14,6 @@ func main() {
 	}
 	app := api.NewApp(&api.Server{Cat: api.SeedCatalog()})
 	// Only the listen address is logged. Request bodies and headers are never logged (guest mode).
-	log.Printf("wealthleak api listening on :%s", port)
+	log.Printf("leakproof api listening on :%s", port)
 	log.Fatal(app.Listen(":" + port))
 }

@@ -12,7 +12,7 @@ export function drawShareCard(canvas: HTMLCanvasElement, s: ShareStats): void {
   g.fillRect(0, 0, 1200, 630);
   g.fillStyle = '#94a3b8';
   g.font = '32px system-ui, sans-serif';
-  g.fillText('My Wealth Leak Score', 80, 120);
+  g.fillText('My Leakproof Score', 80, 120);
   g.fillStyle = '#f8fafc';
   g.font = 'bold 120px system-ui, sans-serif';
   g.fillText(pct(s.rewardYieldBps), 80, 300);
@@ -31,7 +31,7 @@ export function downloadShareCard(s: ShareStats, doc: Document = document): void
     const url = URL.createObjectURL(blob);
     const a = doc.createElement('a');
     a.href = url;
-    a.download = 'wealth-leak-score.png';
+    a.download = 'leakproof-score.png';
     a.click();
     URL.revokeObjectURL(url);
   }, 'image/png');
