@@ -1,4 +1,4 @@
-package api
+package catalog
 
 import (
 	"leakproof/internal/cards"
@@ -12,7 +12,7 @@ type Catalog struct {
 	Cards []cards.Card
 }
 
-func SeedCatalog() *Catalog {
+func Seed() *Catalog {
 	names := map[string]string{
 		"INE040A01034": "HDFC Bank", "INE090A01021": "ICICI Bank", "INE009A01021": "Infosys",
 		"INE002A01018": "Reliance Industries", "INE467B01029": "TCS",

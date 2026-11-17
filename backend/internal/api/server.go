@@ -4,6 +4,7 @@ package api
 
 import (
 	"errors"
+	"sync/atomic"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -13,10 +14,22 @@ import (
 )
 
 type Server struct {
-	Cat     *Catalog
+	Cat     *Catalog // initial catalog; replaced atomically by SetCatalog when the DB refresher runs
 	Now     func() time.Time
 	Workers int
+
+	cur atomic.Pointer[Catalog]
 }
+
+func (s *Server) cat() *Catalog {
+	if c := s.cur.Load(); c != nil {
+		return c
+	}
+	return s.Cat
+}
+
+// SetCatalog swaps in a freshly loaded catalog without blocking in-flight requests.
+func (s *Server) SetCatalog(c *Catalog) { s.cur.Store(c) }
 
 func NewApp(s *Server) *fiber.App {
 	if s.Now == nil {
@@ -53,7 +66,7 @@ func NewApp(s *Server) *fiber.App {
 	return app
 }
 
-func (s *Server) catalogCards(c *fiber.Ctx) error { return c.JSON(s.Cat.Cards) }
+func (s *Server) catalogCards(c *fiber.Ctx) error { return c.JSON(s.cat().Cards) }
 
 // ---- mutual funds ----
 
@@ -132,7 +145,7 @@ func (s *Server) solveCards(c *fiber.Ctx) error {
 		}
 	}
 	byID := map[string]cards.Card{}
-	for _, cd := range s.Cat.Cards {
+	for _, cd := range s.cat().Cards {
 		byID[cd.ID] = cd
 	}
 	var current []cards.Card
@@ -143,7 +156,7 @@ func (s *Server) solveCards(c *fiber.Ctx) error {
 		}
 		current = append(current, cd)
 	}
-	return c.JSON(cards.BestCombo(s.Cat.Cards, current, req.MonthlySpendPaise))
+	return c.JSON(cards.BestCombo(s.cat().Cards, current, req.MonthlySpendPaise))
 }
 
 // ---- classifier ----

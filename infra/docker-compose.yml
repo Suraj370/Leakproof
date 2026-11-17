@@ -7,6 +7,8 @@ services:
       target: runtime
     environment:
       PORT: "8080"
+      DATABASE_URL: ${DATABASE_URL:-}   # unset = in-memory demo catalog
+      REDIS_URL: ${REDIS_URL:-}
     ports: ["8080:8080"]
     restart: unless-stopped
 
@@ -22,7 +24,12 @@ services:
   # Reference-data stores. The guest-mode API does not write user data to either.
   postgres:
     image: postgres:16-alpine
-    profiles: ["data"]
+    profiles: ["data", "itest"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wealth -d leakproof"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
     environment:
       POSTGRES_USER: wealth
       POSTGRES_PASSWORD: wealth_dev_only
@@ -36,6 +43,18 @@ services:
     profiles: ["data"]
     command: ["redis-server", "--save", "", "--appendonly", "no"] # no persistence at all
     ports: ["6379:6379"]
+
+  # DB integration test: docker compose -f infra/docker-compose.yml --profile itest run --rm --build backend-itest
+  backend-itest:
+    profiles: ["itest"]
+    build:
+      context: ../backend
+      target: itest
+    environment:
+      TEST_DATABASE_URL: postgres://wealth:wealth_dev_only@postgres:5432/leakproof
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # docker compose --profile test run --rm backend-test / frontend-test
   backend-test:

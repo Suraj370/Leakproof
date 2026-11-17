@@ -22,7 +22,7 @@ func (s *Server) buildReport(ctx context.Context, positions []mf.Position, slabB
 	var order, unmatched []string
 	merged := map[string]mf.Position{}
 	for _, p := range positions {
-		if _, ok := s.Cat.Funds[p.FundISIN]; !ok {
+		if _, ok := s.cat().Funds[p.FundISIN]; !ok {
 			if skipUnknown {
 				unmatched = appendUnique(unmatched, p.FundISIN)
 				continue
@@ -49,7 +49,7 @@ func (s *Server) buildReport(ctx context.Context, positions []mf.Position, slabB
 	funds := make([]mf.Fund, len(order))
 	summaries := make([]FundSummary, len(order))
 	for i, isin := range order {
-		funds[i] = s.Cat.Funds[isin]
+		funds[i] = s.cat().Funds[isin]
 		summaries[i] = FundSummary{isin, funds[i].Name, merged[isin].ValuePaise(), funds[i].TERBps}
 	}
 	pairs, leak, err := mf.Analyze(ctx, funds, merged, mf.DefaultTaxConfig(slabBps), s.Now(), realisedLTCG, s.Workers)
