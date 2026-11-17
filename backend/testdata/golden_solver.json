@@ -1,0 +1,2091 @@
+{
+  "allocations": [
+    {
+      "name": "shared cap trap",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 0,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 400,
+              "excluded": false,
+              "capGroup": "g"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 500,
+              "excluded": false,
+              "capGroup": "g"
+            }
+          },
+          "groupCapPoints": {
+            "g": 2000
+          },
+          "milestones": []
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 0,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 100,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 500,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {},
+          "milestones": []
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 4000000,
+        "ONLINE_SHOPPING": 4000000
+      },
+      "held": false,
+      "expectedAllocation": {
+        "A": {
+          "DINING": 4000000
+        },
+        "B": {
+          "ONLINE_SHOPPING": 4000000
+        }
+      },
+      "expectedNetPaise": 4320000
+    },
+    {
+      "name": "milestone beats rate",
+      "cards": [
+        {
+          "id": "M",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 100,
+          "redeemPaisePerPoint": 100,
+          "rules": {},
+          "groupCapPoints": {},
+          "milestones": [
+            {
+              "annualSpendPaise": 10000000,
+              "bonusValuePaise": 500000
+            }
+          ]
+        },
+        {
+          "id": "N",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 120,
+          "redeemPaisePerPoint": 100,
+          "rules": {},
+          "groupCapPoints": {},
+          "milestones": []
+        }
+      ],
+      "monthlySpendPaise": {
+        "OFFLINE_POS": 1000000
+      },
+      "held": false,
+      "expectedAllocation": {
+        "M": {
+          "OFFLINE_POS": 833334
+        },
+        "N": {
+          "OFFLINE_POS": 166666
+        }
+      },
+      "expectedNetPaise": 622400
+    },
+    {
+      "name": "fee waiver",
+      "cards": [
+        {
+          "id": "X",
+          "name": "",
+          "annualFeePaise": 500000,
+          "feeWaiverSpendPaise": 12000000,
+          "baseEarnBps": 200,
+          "redeemPaisePerPoint": 100,
+          "rules": {},
+          "groupCapPoints": {},
+          "milestones": []
+        },
+        {
+          "id": "Y",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 150,
+          "redeemPaisePerPoint": 100,
+          "rules": {},
+          "groupCapPoints": {},
+          "milestones": []
+        }
+      ],
+      "monthlySpendPaise": {
+        "OFFLINE_POS": 1000000
+      },
+      "held": false,
+      "expectedAllocation": {
+        "X": {
+          "OFFLINE_POS": 1000000
+        },
+        "Y": {}
+      },
+      "expectedNetPaise": 240000
+    },
+    {
+      "name": "random a",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 75,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 490,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "FUEL": {
+              "earnBps": 55,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 479,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 57,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 598,
+            "g2": 1022
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 37000000,
+              "bonusValuePaise": 200000
+            },
+            {
+              "annualSpendPaise": 76000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 700000,
+        "GROCERIES": 100000,
+        "ONLINE_SHOPPING": 250000
+      },
+      "held": true,
+      "expectedAllocation": {
+        "A": {
+          "DINING": 700000,
+          "GROCERIES": 100000,
+          "ONLINE_SHOPPING": 250000
+        }
+      },
+      "expectedNetPaise": 484800
+    },
+    {
+      "name": "random b",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 250000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 0,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 386,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 420,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 587,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 300,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 519,
+            "g2": 600
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 44000000,
+              "bonusValuePaise": 500000
+            },
+            {
+              "annualSpendPaise": 78000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 350000,
+          "feeWaiverSpendPaise": 22000000,
+          "baseEarnBps": 240,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 403,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 303,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 54,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 184,
+            "g2": 1281
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 41000000,
+              "bonusValuePaise": 800000
+            },
+            {
+              "annualSpendPaise": 31000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 200000,
+        "GROCERIES": 500000,
+        "ONLINE_SHOPPING": 700000
+      },
+      "held": false,
+      "expectedAllocation": {
+        "A": {
+          "DINING": 200000,
+          "GROCERIES": 500000,
+          "ONLINE_SHOPPING": 700000
+        },
+        "B": {}
+      },
+      "expectedNetPaise": 446000
+    },
+    {
+      "name": "random c",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 450000,
+          "feeWaiverSpendPaise": 10000000,
+          "baseEarnBps": 248,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 228,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 152,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 291,
+            "g2": 1436
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 37000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 217,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 387,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 78,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1114,
+            "g2": 759
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 60000000,
+              "bonusValuePaise": 400000
+            },
+            {
+              "annualSpendPaise": 75000000,
+              "bonusValuePaise": 300000
+            }
+          ]
+        },
+        {
+          "id": "C",
+          "name": "",
+          "annualFeePaise": 500000,
+          "feeWaiverSpendPaise": 25000000,
+          "baseEarnBps": 31,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 251,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "GROCERIES": {
+              "earnBps": 338,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 320,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 418,
+            "g2": 1119
+          },
+          "milestones": []
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 450000,
+        "FUEL": 400000,
+        "GROCERIES": 50000,
+        "ONLINE_SHOPPING": 400000
+      },
+      "held": true,
+      "expectedAllocation": {
+        "A": {
+          "DINING": 1,
+          "FUEL": 400000,
+          "GROCERIES": 33333,
+          "ONLINE_SHOPPING": 400000
+        },
+        "B": {
+          "DINING": 449999,
+          "GROCERIES": 16667
+        },
+        "C": {}
+      },
+      "expectedNetPaise": -332900
+    },
+    {
+      "name": "random d",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 100000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 176,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 60,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 248,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 64,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1455
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 39000000,
+              "bonusValuePaise": 700000
+            },
+            {
+              "annualSpendPaise": 66000000,
+              "bonusValuePaise": 700000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "FUEL": 350000,
+        "GROCERIES": 400000,
+        "ONLINE_SHOPPING": 300000
+      },
+      "held": false,
+      "expectedAllocation": {
+        "A": {
+          "FUEL": 350000,
+          "GROCERIES": 400000,
+          "ONLINE_SHOPPING": 300000
+        }
+      },
+      "expectedNetPaise": 65600
+    },
+    {
+      "name": "random e",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 400000,
+          "feeWaiverSpendPaise": 15000000,
+          "baseEarnBps": 20,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 85,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 198,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 490,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 367,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1335,
+            "g2": 236
+          },
+          "milestones": []
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 450000,
+          "feeWaiverSpendPaise": 16000000,
+          "baseEarnBps": 42,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 588,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 79,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 534,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 362,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {},
+          "milestones": [
+            {
+              "annualSpendPaise": 45000000,
+              "bonusValuePaise": 200000
+            },
+            {
+              "annualSpendPaise": 53000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 750000,
+        "FUEL": 1050000,
+        "ONLINE_SHOPPING": 300000
+      },
+      "held": true,
+      "expectedAllocation": {
+        "A": {
+          "FUEL": 1050000,
+          "ONLINE_SHOPPING": 300000
+        },
+        "B": {
+          "DINING": 750000
+        }
+      },
+      "expectedNetPaise": 195000
+    },
+    {
+      "name": "random f",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 29,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 513,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 90,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 10,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 97,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1141,
+            "g2": 592
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 48000000,
+              "bonusValuePaise": 200000
+            },
+            {
+              "annualSpendPaise": 79000000,
+              "bonusValuePaise": 800000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 350000,
+          "feeWaiverSpendPaise": 55000000,
+          "baseEarnBps": 25,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 575,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 330,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 98,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 243,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1372,
+            "g2": 1143
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 13000000,
+              "bonusValuePaise": 300000
+            }
+          ]
+        },
+        {
+          "id": "C",
+          "name": "",
+          "annualFeePaise": 350000,
+          "feeWaiverSpendPaise": 22000000,
+          "baseEarnBps": 160,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "FUEL": {
+              "earnBps": 405,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 539,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {},
+          "milestones": []
+        }
+      ],
+      "monthlySpendPaise": {
+        "FUEL": 200000,
+        "GROCERIES": 200000,
+        "ONLINE_SHOPPING": 300000
+      },
+      "held": false,
+      "expectedAllocation": {
+        "A": {
+          "FUEL": 200000
+        },
+        "B": {},
+        "C": {}
+      },
+      "expectedNetPaise": 21600
+    },
+    {
+      "name": "random g",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 44,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 99,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 565,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 44,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 812,
+            "g2": 1153
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 79000000,
+              "bonusValuePaise": 300000
+            },
+            {
+              "annualSpendPaise": 17000000,
+              "bonusValuePaise": 600000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 250000,
+        "FUEL": 350000,
+        "GROCERIES": 50000,
+        "ONLINE_SHOPPING": 100000
+      },
+      "held": true,
+      "expectedAllocation": {
+        "A": {
+          "DINING": 250000,
+          "FUEL": 350000,
+          "GROCERIES": 50000,
+          "ONLINE_SHOPPING": 100000
+        }
+      },
+      "expectedNetPaise": 60900
+    },
+    {
+      "name": "random h",
+      "cards": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 237,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 239,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 406,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 1196
+          },
+          "milestones": []
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 100000,
+          "feeWaiverSpendPaise": 43000000,
+          "baseEarnBps": 18,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 525,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 468,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 119,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 596,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 430,
+            "g2": 681
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 7000000,
+              "bonusValuePaise": 200000
+            },
+            {
+              "annualSpendPaise": 7000000,
+              "bonusValuePaise": 200000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "GROCERIES": 200000,
+        "ONLINE_SHOPPING": 600000
+      },
+      "held": false,
+      "expectedAllocation": {
+        "A": {
+          "GROCERIES": 199999,
+          "ONLINE_SHOPPING": 16667
+        },
+        "B": {
+          "GROCERIES": 1,
+          "ONLINE_SHOPPING": 583333
+        }
+      },
+      "expectedNetPaise": 464100
+    }
+  ],
+  "combos": [
+    {
+      "name": "catalog a",
+      "catalog": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 130,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 331,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 333,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 282,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 45,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 378,
+            "g2": 811
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 28000000,
+              "bonusValuePaise": 200000
+            },
+            {
+              "annualSpendPaise": 44000000,
+              "bonusValuePaise": 400000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 300000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 139,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 450,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 476,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 369,
+            "g2": 1077
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 76000000,
+              "bonusValuePaise": 300000
+            },
+            {
+              "annualSpendPaise": 44000000,
+              "bonusValuePaise": 500000
+            }
+          ]
+        },
+        {
+          "id": "C",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 25,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "FUEL": {
+              "earnBps": 457,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 13,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 582,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1389
+          },
+          "milestones": []
+        },
+        {
+          "id": "D",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 55,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 289,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "FUEL": {
+              "earnBps": 206,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 40,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 99,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g2": 1208
+          },
+          "milestones": []
+        },
+        {
+          "id": "E",
+          "name": "",
+          "annualFeePaise": 250000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 175,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "FUEL": {
+              "earnBps": 469,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 47,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 225,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1327,
+            "g2": 889
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 30000000,
+              "bonusValuePaise": 700000
+            },
+            {
+              "annualSpendPaise": 8000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        },
+        {
+          "id": "F",
+          "name": "",
+          "annualFeePaise": 50000,
+          "feeWaiverSpendPaise": 48000000,
+          "baseEarnBps": 156,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 467,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 219,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "GROCERIES": {
+              "earnBps": 206,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 20,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g2": 1046
+          },
+          "milestones": []
+        }
+      ],
+      "current": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 130,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 331,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 333,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 282,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 45,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 378,
+            "g2": 811
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 28000000,
+              "bonusValuePaise": 200000
+            },
+            {
+              "annualSpendPaise": 44000000,
+              "bonusValuePaise": 400000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 300000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 139,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 450,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 476,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 369,
+            "g2": 1077
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 76000000,
+              "bonusValuePaise": 300000
+            },
+            {
+              "annualSpendPaise": 44000000,
+              "bonusValuePaise": 500000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 500000,
+        "FUEL": 900000,
+        "GROCERIES": 150000,
+        "ONLINE_SHOPPING": 900000
+      },
+      "expectedCardIds": [
+        "A",
+        "C"
+      ],
+      "expectedNetPaise": 764100,
+      "expectedBaselinePaise": 382200
+    },
+    {
+      "name": "catalog b",
+      "catalog": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 200000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 91,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 233,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 31,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 376,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 983
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 38000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 250000,
+          "feeWaiverSpendPaise": 41000000,
+          "baseEarnBps": 20,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 70,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 452,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 9,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 227,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {},
+          "milestones": []
+        },
+        {
+          "id": "C",
+          "name": "",
+          "annualFeePaise": 400000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 26,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 450,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "FUEL": {
+              "earnBps": 352,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "GROCERIES": {
+              "earnBps": 514,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 530,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 927
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 78000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        },
+        {
+          "id": "D",
+          "name": "",
+          "annualFeePaise": 500000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 67,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "FUEL": {
+              "earnBps": 75,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 380,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 560,
+            "g2": 942
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 42000000,
+              "bonusValuePaise": 800000
+            },
+            {
+              "annualSpendPaise": 73000000,
+              "bonusValuePaise": 500000
+            }
+          ]
+        },
+        {
+          "id": "E",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 132,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 464,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "FUEL": {
+              "earnBps": 40,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 32,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 322,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g2": 356
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 12000000,
+              "bonusValuePaise": 800000
+            },
+            {
+              "annualSpendPaise": 31000000,
+              "bonusValuePaise": 500000
+            }
+          ]
+        },
+        {
+          "id": "F",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 193,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 528,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 85,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 452,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1173,
+            "g2": 680
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 49000000,
+              "bonusValuePaise": 800000
+            }
+          ]
+        }
+      ],
+      "current": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 200000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 91,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 233,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 31,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 376,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 983
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 38000000,
+              "bonusValuePaise": 100000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 250000,
+          "feeWaiverSpendPaise": 41000000,
+          "baseEarnBps": 20,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 70,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 452,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 9,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 227,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {},
+          "milestones": []
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 450000,
+        "FUEL": 100000,
+        "ONLINE_SHOPPING": 150000
+      },
+      "expectedCardIds": [
+        "A",
+        "F"
+      ],
+      "expectedNetPaise": 387600,
+      "expectedBaselinePaise": -204000
+    },
+    {
+      "name": "catalog c",
+      "catalog": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 500000,
+          "feeWaiverSpendPaise": 52000000,
+          "baseEarnBps": 22,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 391,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 12,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 247,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 282,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 727
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 33000000,
+              "bonusValuePaise": 500000
+            },
+            {
+              "annualSpendPaise": 55000000,
+              "bonusValuePaise": 700000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 158,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 14,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 372,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 238,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 21,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1292
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 14000000,
+              "bonusValuePaise": 300000
+            }
+          ]
+        },
+        {
+          "id": "C",
+          "name": "",
+          "annualFeePaise": 150000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 68,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "FUEL": {
+              "earnBps": 428,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 284,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 12,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g2": 808
+          },
+          "milestones": []
+        },
+        {
+          "id": "D",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 119,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 199,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 506,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "GROCERIES": {
+              "earnBps": 457,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 40,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {},
+          "milestones": []
+        },
+        {
+          "id": "E",
+          "name": "",
+          "annualFeePaise": 50000,
+          "feeWaiverSpendPaise": 5000000,
+          "baseEarnBps": 56,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 450,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "GROCERIES": {
+              "earnBps": 4,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 329,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 502
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 26000000,
+              "bonusValuePaise": 300000
+            }
+          ]
+        },
+        {
+          "id": "F",
+          "name": "",
+          "annualFeePaise": 200000,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 115,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "FUEL": {
+              "earnBps": 22,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 786,
+            "g2": 1389
+          },
+          "milestones": []
+        }
+      ],
+      "current": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 500000,
+          "feeWaiverSpendPaise": 52000000,
+          "baseEarnBps": 22,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 391,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 12,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 247,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 282,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 727
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 33000000,
+              "bonusValuePaise": 500000
+            },
+            {
+              "annualSpendPaise": 55000000,
+              "bonusValuePaise": 700000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 158,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 14,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 372,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 238,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 21,
+              "excluded": true,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1292
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 14000000,
+              "bonusValuePaise": 300000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 400000,
+        "GROCERIES": 350000,
+        "ONLINE_SHOPPING": 150000
+      },
+      "expectedCardIds": [
+        "B",
+        "E"
+      ],
+      "expectedNetPaise": 168300,
+      "expectedBaselinePaise": -159200
+    },
+    {
+      "name": "catalog d",
+      "catalog": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 350000,
+          "feeWaiverSpendPaise": 57000000,
+          "baseEarnBps": 15,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 454,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 89,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 290,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 711
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 13000000,
+              "bonusValuePaise": 400000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 205,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 340,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 552,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "GROCERIES": {
+              "earnBps": 56,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 405,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1285,
+            "g2": 1432
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 44000000,
+              "bonusValuePaise": 300000
+            },
+            {
+              "annualSpendPaise": 62000000,
+              "bonusValuePaise": 400000
+            }
+          ]
+        },
+        {
+          "id": "C",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 58,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 427,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "FUEL": {
+              "earnBps": 11,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 81,
+              "excluded": true,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 596,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1544
+          },
+          "milestones": []
+        },
+        {
+          "id": "D",
+          "name": "",
+          "annualFeePaise": 250000,
+          "feeWaiverSpendPaise": 32000000,
+          "baseEarnBps": 178,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "DINING": {
+              "earnBps": 438,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "FUEL": {
+              "earnBps": 189,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 251,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 701
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 35000000,
+              "bonusValuePaise": 700000
+            },
+            {
+              "annualSpendPaise": 20000000,
+              "bonusValuePaise": 500000
+            }
+          ]
+        },
+        {
+          "id": "E",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 82,
+          "redeemPaisePerPoint": 100,
+          "rules": {
+            "FUEL": {
+              "earnBps": 444,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 559,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 483,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 1451
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 38000000,
+              "bonusValuePaise": 800000
+            }
+          ]
+        },
+        {
+          "id": "F",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 191,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 309,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "FUEL": {
+              "earnBps": 340,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 321,
+              "excluded": false,
+              "capGroup": "g1"
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 167,
+              "excluded": false,
+              "capGroup": ""
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1070
+          },
+          "milestones": []
+        }
+      ],
+      "current": [
+        {
+          "id": "A",
+          "name": "",
+          "annualFeePaise": 350000,
+          "feeWaiverSpendPaise": 57000000,
+          "baseEarnBps": 15,
+          "redeemPaisePerPoint": 50,
+          "rules": {
+            "DINING": {
+              "earnBps": 454,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "GROCERIES": {
+              "earnBps": 89,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 290,
+              "excluded": false,
+              "capGroup": "g1"
+            }
+          },
+          "groupCapPoints": {
+            "g2": 711
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 13000000,
+              "bonusValuePaise": 400000
+            }
+          ]
+        },
+        {
+          "id": "B",
+          "name": "",
+          "annualFeePaise": 0,
+          "feeWaiverSpendPaise": 0,
+          "baseEarnBps": 205,
+          "redeemPaisePerPoint": 25,
+          "rules": {
+            "DINING": {
+              "earnBps": 340,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "FUEL": {
+              "earnBps": 552,
+              "excluded": false,
+              "capGroup": "g2"
+            },
+            "GROCERIES": {
+              "earnBps": 56,
+              "excluded": false,
+              "capGroup": ""
+            },
+            "ONLINE_SHOPPING": {
+              "earnBps": 405,
+              "excluded": false,
+              "capGroup": "g2"
+            }
+          },
+          "groupCapPoints": {
+            "g1": 1285,
+            "g2": 1432
+          },
+          "milestones": [
+            {
+              "annualSpendPaise": 44000000,
+              "bonusValuePaise": 300000
+            },
+            {
+              "annualSpendPaise": 62000000,
+              "bonusValuePaise": 400000
+            }
+          ]
+        }
+      ],
+      "monthlySpendPaise": {
+        "DINING": 900000,
+        "FUEL": 300000,
+        "GROCERIES": 1050000
+      },
+      "expectedCardIds": [
+        "C",
+        "E"
+      ],
+      "expectedNetPaise": 1323600,
+      "expectedBaselinePaise": 400100
+    }
+  ]
+}

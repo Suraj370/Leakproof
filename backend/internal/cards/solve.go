@@ -174,7 +174,7 @@ func (m *model) toAlloc(x []float64, ts [][]threshold, level []int) map[string]S
 		a[k] = make([]int64, ni)
 		for i := 0; i < ni; i++ {
 			if j := m.xi[k][i]; j >= 0 {
-				a[k][i] = max(0, int64(math.Floor(x[j]*100+0.5)))
+				a[k][i] = max(0, int64(math.Floor(float64(x[j]*100)+0.5)))
 			}
 		}
 	}
