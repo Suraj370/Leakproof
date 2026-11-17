@@ -46,6 +46,7 @@ func NewApp(s *Server) *fiber.App {
 	app.Get("/healthz", func(c *fiber.Ctx) error { return c.JSON(fiber.Map{"ok": true}) })
 	app.Get("/api/v1/catalog/cards", s.catalogCards)
 	app.Post("/api/v1/analyze/mf", s.analyzeMF)
+	app.Post("/api/v1/analyze/cas", s.analyzeCAS)
 	app.Post("/api/v1/cards/solve", s.solveCards)
 	app.Post("/api/v1/classify", s.classify)
 	return app
@@ -90,41 +91,11 @@ func (s *Server) analyzeMF(c *fiber.Ctx) error {
 		req.SlabBps = 3000
 	}
 
-	// Merge folios of the same scheme; keep first-seen order so matrix indices are stable.
-	var order []string
-	merged := map[string]mf.Position{}
-	for _, p := range req.Positions {
-		if _, ok := s.Cat.Funds[p.FundISIN]; !ok {
-			return fiber.NewError(fiber.StatusBadRequest, "unknown fund ISIN: "+p.FundISIN)
-		}
-		for _, l := range p.Lots {
-			if l.CostPaise < 0 || l.ValuePaise < 0 {
-				return fiber.NewError(fiber.StatusBadRequest, "negative lot amounts")
-			}
-		}
-		m, seen := merged[p.FundISIN]
-		if !seen {
-			order = append(order, p.FundISIN)
-			m = mf.Position{FundISIN: p.FundISIN}
-		}
-		m.Lots = append(m.Lots, p.Lots...)
-		merged[p.FundISIN] = m
-	}
-
-	funds := make([]mf.Fund, len(order))
-	summaries := make([]FundSummary, len(order))
-	for i, isin := range order {
-		funds[i] = s.Cat.Funds[isin]
-		summaries[i] = FundSummary{isin, funds[i].Name, merged[isin].ValuePaise(), funds[i].TERBps}
-	}
-
-	cfg := mf.DefaultTaxConfig(req.SlabBps)
-	pairs, leak, err := mf.Analyze(c.Context(), funds, merged, cfg, s.Now(), req.RealisedLTCGPaise, s.Workers)
+	rep, _, err := s.buildReport(c.Context(), req.Positions, req.SlabBps, req.RealisedLTCGPaise, false)
 	if err != nil {
 		return err
 	}
-	return c.JSON(MFReport{Funds: summaries, Pairs: pairs, AnnualLeakPaise: leak,
-		PortfolioOverlapBps: weightedOverlap(pairs, summaries)})
+	return c.JSON(rep)
 }
 
 // weightedOverlap is the pair overlap averaged with weight min(valueA, valueB), so a big overlapping
