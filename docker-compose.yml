@@ -1,0 +1,49 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      target: runtime
+    environment:
+      PORT: "8080"
+    ports: ["8080:8080"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: runtime
+    depends_on: [backend]
+    ports: ["3000:80"]
+    restart: unless-stopped
+
+  # Reference-data stores. The guest-mode API does not write user data to either.
+  postgres:
+    image: postgres:16-alpine
+    profiles: ["data"]
+    environment:
+      POSTGRES_USER: wealth
+      POSTGRES_PASSWORD: wealth_dev_only
+      POSTGRES_DB: wealthleak
+    volumes:
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+    ports: ["5432:5432"]
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["data"]
+    command: ["redis-server", "--save", "", "--appendonly", "no"] # no persistence at all
+    ports: ["6379:6379"]
+
+  # docker compose --profile test run --rm backend-test / frontend-test
+  backend-test:
+    profiles: ["test"]
+    build:
+      context: ./backend
+      target: test
+  frontend-test:
+    profiles: ["test"]
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: test
