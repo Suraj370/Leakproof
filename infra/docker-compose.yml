@@ -1,7 +1,9 @@
+name: wealth-leak-finder
+
 services:
   backend:
     build:
-      context: ./backend
+      context: ../backend
       target: runtime
     environment:
       PORT: "8080"
@@ -10,7 +12,7 @@ services:
 
   frontend:
     build:
-      context: .
+      context: ..
       dockerfile: frontend/Dockerfile
       target: runtime
     depends_on: [backend]
@@ -26,7 +28,7 @@ services:
       POSTGRES_PASSWORD: wealth_dev_only
       POSTGRES_DB: wealthleak
     volumes:
-      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+      - ../backend/migrations:/docker-entrypoint-initdb.d:ro
     ports: ["5432:5432"]
 
   redis:
@@ -39,11 +41,11 @@ services:
   backend-test:
     profiles: ["test"]
     build:
-      context: ./backend
+      context: ../backend
       target: test
   frontend-test:
     profiles: ["test"]
     build:
-      context: .
+      context: ..
       dockerfile: frontend/Dockerfile
       target: test

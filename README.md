@@ -4,6 +4,7 @@ Mutual fund overlap / tax-aware consolidation and Indian credit card reward opti
 "annual rupees left on the table". Guest mode only: request bodies are processed in memory and never stored.
 
 ```
+infra/     docker-compose.yml (Dockerfiles live beside the code in backend/ and frontend/)
 backend/   Go 1.22 + Fiber  (internal/mf, internal/cards, internal/api, migrations/)
 frontend/  React 19 + TS strict + Tailwind + Zustand + Vitest
 ```
@@ -14,15 +15,15 @@ both the Go and TypeScript test suites so the server and the client simulator ca
 ## Run (Docker)
 
 ```bash
-docker compose up --build            # UI on http://localhost:3000, API on :8080
-docker compose --profile data up -d postgres redis   # optional: schema in backend/migrations is auto-applied
+docker compose -f infra/docker-compose.yml up --build            # UI on http://localhost:3000, API on :8080
+docker compose -f infra/docker-compose.yml --profile data up -d postgres redis   # optional: schema in backend/migrations is auto-applied
 ```
 
 ## Tests
 
 ```bash
-docker compose --profile test run --rm --build backend-test    # go vet + go test
-docker compose --profile test run --rm --build frontend-test   # tsc + vitest
+docker compose -f infra/docker-compose.yml --profile test run --rm --build backend-test    # go vet + go test
+docker compose -f infra/docker-compose.yml --profile test run --rm --build frontend-test   # tsc + vitest
 ```
 
 Without Docker: `cd backend && go mod tidy && go test ./...` and `cd frontend && pnpm install && pnpm test`.
