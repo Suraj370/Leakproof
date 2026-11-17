@@ -285,3 +285,65 @@ func TestIntegrationGrandfatherNAVRoundTrip(t *testing.T) {
 		t.Fatal("NAV erased by a later import that omitted it")
 	}
 }
+
+// luhnISIN returns prefix11 plus the check digit that makes it a valid ISIN.
+func luhnISIN(t *testing.T, prefix11 string) string {
+	t.Helper()
+	for d := 0; d <= 9; d++ {
+		if s := prefix11 + string(rune('0'+d)); ValidISIN(s) {
+			return s
+		}
+	}
+	t.Fatalf("no check digit for %s", prefix11)
+	return ""
+}
+
+func TestIntegrationFundOfFundsIsLookedThroughOnLoad(t *testing.T) {
+	pool := tempDB(t)
+	ctx := context.Background()
+	under, fof := luhnISIN(t, "INF000UND01"), luhnISIN(t, "INF000FOF01")
+
+	funds := "isin,name,amc,plan,category,equity_oriented,ter_bps,ter_as_of\n" +
+		under + ",Underlying Equity,X,DIRECT,Large Cap,true,50,2025-03-31\n" +
+		fof + ",Fund of Funds,X,REGULAR,FoF,true,140,2025-03-31\n"
+	if err := UpsertFunds(ctx, pool, mustFunds(t, funds)); err != nil {
+		t.Fatal(err)
+	}
+
+	// A fund ISIN is a legal "stock" row in a FoF's holdings file.
+	csv := holdingsCSV(
+		under+",INE040A01034,HDFC Bank,30",
+		under+",INE090A01021,ICICI Bank,20",
+		under+",INE009A01021,Infosys,10",
+		fof+","+under+",Underlying Equity,90",
+		fof+",INE002A01018,Reliance,5",
+	)
+	parsed, msgs, err := ParseHoldingsCSV(strings.NewReader(csv))
+	if err != nil || len(msgs) != 0 || len(parsed) != 2 {
+		t.Fatalf("%v %v %d", err, msgs, len(parsed))
+	}
+	mar := time.Date(2025, 3, 1, 0, 0, 0, 0, time.UTC)
+	for _, fh := range parsed {
+		if err := ReplaceHoldings(ctx, pool, mar, fh, false); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	c, err := catalog.Load(ctx, pool)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := c.Funds[fof].Holdings
+	if _, opaque := h[under]; opaque {
+		t.Fatalf("FoF still holds the fund as an opaque position: %v", h)
+	}
+	want := map[string]int64{"INE040A01034": 2700, "INE090A01021": 1800, "INE009A01021": 900, "INE002A01018": 500}
+	for k, v := range want {
+		if h[k] != v {
+			t.Errorf("%s = %d, want %d (%v)", k, h[k], v, h)
+		}
+	}
+	if c.Funds[fof].HoldingNames["INE040A01034"] != "HDFC Bank" {
+		t.Fatalf("names: %v", c.Funds[fof].HoldingNames)
+	}
+}

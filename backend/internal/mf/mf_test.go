@@ -376,3 +376,116 @@ func TestAnalyzeExitFundInSeveralPairsDoesNotCompeteWithItself(t *testing.T) {
 		}
 	}
 }
+
+func fundWith(isin string, h map[string]int64) Fund {
+	f := eqFund(isin, 100, h)
+	f.HoldingNames = map[string]string{}
+	for k := range h {
+		f.HoldingNames[k] = "name-" + k
+	}
+	return f
+}
+
+func TestLookThroughScalesUnderlyingHoldings(t *testing.T) {
+	u1 := fundWith("U1", map[string]int64{"X": 5000, "Y": 3000})
+	u2 := fundWith("U2", map[string]int64{"X": 2000, "Z": 6000})
+	fof := fundWith("FOF", map[string]int64{"U1": 6000, "U2": 3000, "CASHSTOCK": 500})
+	in := map[string]Fund{"U1": u1, "U2": u2, "FOF": fof}
+
+	out := LookThrough(in)
+	h := out["FOF"].Holdings
+	want := map[string]int64{"X": 3600, "Y": 1800, "Z": 1800, "CASHSTOCK": 500} // X = 60%*50% + 30%*20%
+	if len(h) != len(want) {
+		t.Fatalf("%v", h)
+	}
+	for k, v := range want {
+		if h[k] != v {
+			t.Errorf("%s = %d, want %d (%v)", k, h[k], v, h)
+		}
+	}
+	if out["FOF"].HoldingNames["X"] != "name-X" {
+		t.Fatalf("names lost: %v", out["FOF"].HoldingNames)
+	}
+	// the input is untouched and flat funds are returned unchanged
+	if len(in["FOF"].Holdings) != 3 || in["FOF"].Holdings["U1"] != 6000 {
+		t.Fatal("input mutated")
+	}
+	if len(out["U1"].Holdings) != 2 || out["U1"].Holdings["X"] != 5000 {
+		t.Fatalf("flat fund changed: %v", out["U1"].Holdings)
+	}
+}
+
+func TestLookThroughMakesAFundOfFundsOverlapItsUnderlying(t *testing.T) {
+	u1 := fundWith("U1", map[string]int64{"X": 5000, "Y": 3000})
+	fof := fundWith("FOF", map[string]int64{"U1": 9000})
+	// Raw holdings share nothing (the FoF "holds" a fund ISIN), so without look-through overlap is 0.
+	if o, _ := Overlap(fof, u1); o != 0 {
+		t.Fatalf("raw overlap %d", o)
+	}
+	flat := LookThrough(map[string]Fund{"U1": u1, "FOF": fof})
+	o, shared := Overlap(flat["FOF"], flat["U1"])
+	if o != 7200 || len(shared) != 2 { // 90% of (50% + 30%) = 72%
+		t.Fatalf("overlap %d %v", o, shared)
+	}
+	if o <= FlagThresholdBps {
+		t.Fatal("a FoF and its underlying must be flagged")
+	}
+}
+
+func TestLookThroughNestedAndCycles(t *testing.T) {
+	eq := fundWith("EQ", map[string]int64{"X": 8000})
+	mid := fundWith("MID", map[string]int64{"EQ": 5000})
+	top := fundWith("TOP", map[string]int64{"MID": 5000})
+	out := LookThrough(map[string]Fund{"EQ": eq, "MID": mid, "TOP": top})
+	if got := out["TOP"].Holdings["X"]; got != 2000 { // 50% * 50% * 80%
+		t.Fatalf("nested = %d (%v)", got, out["TOP"].Holdings)
+	}
+
+	a := fundWith("A", map[string]int64{"B": 5000, "S": 2000})
+	b := fundWith("B", map[string]int64{"A": 5000, "T": 4000})
+	cyc := LookThrough(map[string]Fund{"A": a, "B": b}) // must terminate
+	if cyc["A"].Holdings["T"] != 2000 || cyc["A"].Holdings["S"] != 2000 {
+		t.Fatalf("%v", cyc["A"].Holdings)
+	}
+	if _, kept := cyc["A"].Holdings["A"]; kept {
+		// A -> B -> A: the inner A is opaque (cycle), so its 5000*5000/10000 = 2500 stays under key "A"
+		if cyc["A"].Holdings["A"] != 2500 {
+			t.Fatalf("%v", cyc["A"].Holdings)
+		}
+	}
+}
+
+func chainFunds(n int) map[string]Fund {
+	chain := map[string]Fund{"L0": fundWith("L0", map[string]int64{"X": 10000})}
+	prev := "L0"
+	for i := 1; i <= n; i++ {
+		id := "L" + string(rune('0'+i))
+		chain[id] = fundWith(id, map[string]int64{prev: 10000})
+		prev = id
+	}
+	return chain
+}
+
+func TestLookThroughDepthLimitTerminatesWithoutGrowingWeights(t *testing.T) {
+	out := LookThrough(chainFunds(8)) // far deeper than MaxLookThroughDepth
+	var total int64
+	for _, w := range out["L8"].Holdings {
+		total += w
+	}
+	if total != 10_000 {
+		t.Fatalf("weights not conserved: %d (%v)", total, out["L8"].Holdings)
+	}
+}
+
+func TestLookThroughIsIdempotentWithinDepthLimit(t *testing.T) {
+	once := LookThrough(chainFunds(MaxLookThroughDepth))
+	if once["L3"].Holdings["X"] != 10_000 {
+		t.Fatalf("a chain of exactly the depth limit must fully expand: %v", once["L3"].Holdings)
+	}
+	twice := LookThrough(once)
+	for k, v := range once["L3"].Holdings {
+		if twice["L3"].Holdings[k] != v {
+			t.Fatalf("not idempotent at %s", k)
+		}
+	}
+}

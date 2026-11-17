@@ -130,5 +130,7 @@ func Load(ctx context.Context, pool *pgxpool.Pool) (*Catalog, error) {
 	for _, id := range order {
 		c.Cards = append(c.Cards, *byID[id])
 	}
+	// Fund-of-funds hold other funds: expand them once, here, so every overlap comparison sees real stocks.
+	c.Funds = mf.LookThrough(c.Funds)
 	return c, nil
 }
