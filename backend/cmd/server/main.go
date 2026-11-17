@@ -11,6 +11,7 @@ import (
 
 	"leakproof/internal/api"
 	"leakproof/internal/catalog"
+	"leakproof/internal/reports"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 			log.Fatalf("database: %v", err)
 		}
 		defer pool.Close()
+		srv.Reports = reports.PgStore{Pool: pool}
 
 		var rc *redis.Client
 		if u := os.Getenv("REDIS_URL"); u != "" {

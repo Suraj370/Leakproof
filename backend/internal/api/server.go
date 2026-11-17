@@ -11,12 +11,14 @@ import (
 
 	"leakproof/internal/cards"
 	"leakproof/internal/mf"
+	"leakproof/internal/reports"
 )
 
 type Server struct {
 	Cat     *Catalog // initial catalog; replaced atomically by SetCatalog when the DB refresher runs
 	Now     func() time.Time
 	Workers int
+	Reports reports.Store // nil = in-memory store (no database configured)
 
 	cur atomic.Pointer[Catalog]
 }
@@ -34,6 +36,9 @@ func (s *Server) SetCatalog(c *Catalog) { s.cur.Store(c) }
 func NewApp(s *Server) *fiber.App {
 	if s.Now == nil {
 		s.Now = time.Now
+	}
+	if s.Reports == nil {
+		s.Reports = reports.NewMemStore()
 	}
 	if s.Workers <= 0 {
 		s.Workers = 4
@@ -61,6 +66,7 @@ func NewApp(s *Server) *fiber.App {
 	app.Post("/api/v1/analyze/mf", s.analyzeMF)
 	app.Post("/api/v1/analyze/cas", s.analyzeCAS)
 	app.Post("/api/v1/analyze/bank", s.analyzeBank)
+	s.mountReports(app)
 	app.Post("/api/v1/cards/solve", s.solveCards)
 	app.Post("/api/v1/classify", s.classify)
 	return app

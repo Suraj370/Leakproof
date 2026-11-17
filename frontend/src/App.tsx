@@ -3,7 +3,9 @@ import { CardSimulator } from './CardSimulator';
 import type { CASReport, CreditCard, MFReport, Position } from './contracts';
 import { UploadBank } from './UploadBank';
 import { UploadCAS } from './UploadCAS';
+import { SaveScore } from './SaveScore';
 import { ShareButton } from './ShareCard';
+import { SharedScore } from './SharedScore';
 import { useCardSimulator } from './useCardSimulator';
 import { WealthLeakSummary } from './WealthLeakSummary';
 
@@ -15,6 +17,11 @@ const DEMO: Position[] = [
 ];
 
 export function App() {
+  const m = /^\/r\/([a-z2-7]{10})$/.exec(window.location.pathname);
+  return m?.[1] ? <SharedScore slug={m[1]} /> : <Home />;
+}
+
+function Home() {
   const [catalog, setCatalog] = useState<CreditCard[]>([]);
   const [report, setReport] = useState<MFReport | null>(null);
   const [notes, setNotes] = useState<CASReport | null>(null);
@@ -76,10 +83,17 @@ export function App() {
 }
 
 function Share({ catalog, report }: { catalog: CreditCard[]; report: MFReport | null }) {
-  const { comboYieldBps, walletYieldBps } = useCardSimulator(catalog);
+  const sim = useCardSimulator(catalog);
+  const cardLeak = sim.leftOnTablePaise;
+  const mfLeak = report?.annualLeakPaise ?? 0;
+  const rewardYieldBps = sim.walletYieldBps || sim.comboYieldBps;
+  const overlapBps = report?.portfolioOverlapBps ?? 0;
   return (
-    <ShareButton
-      stats={{ rewardYieldBps: walletYieldBps || comboYieldBps, overlapBps: report?.portfolioOverlapBps ?? 0 }}
-    />
+    <div className="space-y-3">
+      <ShareButton stats={{ rewardYieldBps, overlapBps }} />
+      <SaveScore
+        score={{ rewardYieldBps, overlapBps, annualLeakPaise: cardLeak + mfLeak, cardLeakPaise: cardLeak, mfLeakPaise: mfLeak }}
+      />
+    </div>
   );
 }

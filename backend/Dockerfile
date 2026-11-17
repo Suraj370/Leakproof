@@ -12,7 +12,7 @@ RUN --mount=type=cache,target=/go/pkg/mod go vet ./... && go test ./... -count=1
 
 # Integration tests need PostgreSQL: run via compose profile itest (sets TEST_DATABASE_URL).
 FROM base AS itest
-CMD ["go","test","./internal/catalog/...","-run","Integration","-count=1","-v"]
+CMD ["go","test","./internal/catalog/...","./internal/reports/...","-run","Integration","-count=1","-v"]
 
 FROM base AS build
 RUN --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
