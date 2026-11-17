@@ -47,6 +47,7 @@ func NewApp(s *Server) *fiber.App {
 	app.Get("/api/v1/catalog/cards", s.catalogCards)
 	app.Post("/api/v1/analyze/mf", s.analyzeMF)
 	app.Post("/api/v1/analyze/cas", s.analyzeCAS)
+	app.Post("/api/v1/analyze/bank", s.analyzeBank)
 	app.Post("/api/v1/cards/solve", s.solveCards)
 	app.Post("/api/v1/classify", s.classify)
 	return app

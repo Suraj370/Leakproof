@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { CardSimulator } from './CardSimulator';
 import type { CASReport, CreditCard, MFReport, Position } from './contracts';
+import { UploadBank } from './UploadBank';
 import { UploadCAS } from './UploadCAS';
 import { ShareButton } from './ShareCard';
 import { useCardSimulator } from './useCardSimulator';
@@ -50,6 +51,7 @@ export function App() {
       </p>
       {error && <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-800">{error}</p>}
 
+      <UploadBank />
       <CardSimulator catalog={catalog} />
 
       <div className="space-y-4">
