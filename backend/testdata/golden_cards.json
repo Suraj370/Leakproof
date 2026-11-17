@@ -1,0 +1,36 @@
+{
+  "cards": [
+    {
+      "id": "A",
+      "name": "Demo Cashback (5% online, capped)",
+      "annualFeePaise": 59900,
+      "feeWaiverSpendPaise": 20000000,
+      "baseEarnBps": 100,
+      "redeemPaisePerPoint": 100,
+      "rules": {
+        "ONLINE_SHOPPING": { "earnBps": 500, "excluded": false, "capGroup": "online" },
+        "FUEL": { "earnBps": 0, "excluded": true, "capGroup": "" }
+      },
+      "groupCapPoints": { "online": 5000 }
+    },
+    {
+      "id": "B",
+      "name": "Demo Flat 1.5%",
+      "annualFeePaise": 0,
+      "feeWaiverSpendPaise": 0,
+      "baseEarnBps": 150,
+      "redeemPaisePerPoint": 100,
+      "rules": {},
+      "groupCapPoints": {}
+    }
+  ],
+  "monthlySpendPaise": { "ONLINE_SHOPPING": 20000000, "FUEL": 1000000, "DINING": 2000000 },
+  "expectedAllocation": {
+    "A": { "ONLINE_SHOPPING": 10000000 },
+    "B": { "ONLINE_SHOPPING": 10000000, "DINING": 2000000, "FUEL": 1000000 }
+  },
+  "expectedYields": [
+    { "cardId": "A", "annualRewardPaise": 6000000, "lostToCapsPaise": 0, "feePaise": 59900, "netPaise": 5940100 },
+    { "cardId": "B", "annualRewardPaise": 2340000, "lostToCapsPaise": 0, "feePaise": 0, "netPaise": 2340000 }
+  ]
+}
