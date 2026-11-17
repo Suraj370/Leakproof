@@ -10,9 +10,10 @@ infra/     docker-compose.yml, k8s/cronjobs.yaml  (Dockerfiles live beside the c
 data/      sample (fabricated) files for the ingestion CLI
 ```
 
-All money is integer paise, all rates are basis points. Two shared fixtures keep the layers honest:
-`backend/testdata/golden_cards.json` (Go and TS card engines must agree) and
-`backend/testdata/contract_fields.json` (Go API structs and `frontend/src/contracts.ts` must agree).
+All money is integer paise, all rates are basis points. Shared fixtures keep the layers honest: `backend/testdata/golden_cards.json` and `golden_solver.json` (the Go and
+TypeScript card engines and solvers must return identical allocations and totals) and `contract_fields.json` (Go API
+structs and `frontend/src/contracts.ts` must agree). Regenerate after an intentional change with
+`UPDATE_GOLDEN=1` / `UPDATE_CONTRACT=1 go test ./internal/cards ./internal/contract`.
 
 ## Run (Docker)
 
@@ -44,9 +45,16 @@ Docker caches test layers; add `build --no-cache` to force a fresh run. Without 
 
 - **Statement intake:** CAMS/KFintech CAS PDF (RC4 / AES-128, in-memory decrypt, FIFO lots, PII-free output) and
   bank / credit-card CSV (header detection, debits only, category averages) feeding the simulator sliders.
-- **Engines:** overlap on a bounded errgroup pool; STCG/LTCG/exit-load verdicts (FY-boundary and loss set-off aware);
-  card rewards with caps, exclusions, redemption value and fee waivers; 1-and-2-card solver (marginal-greedy heuristic);
-  merchant classifier.
+- **Tax engine:** overlap on a bounded errgroup pool; STCG/LTCG/exit-load verdicts that are FY-boundary and loss
+  set-off aware, apply the Sec. 55(2)(ac) grandfathered cost to pre-Feb-2018 units (when the 31-Jan-2018 NAV is
+  loaded; otherwise a note says tax may be overstated), and share ONE Rs1.25L exemption across all flagged exits
+  (largest saving first). Fund-of-funds are looked through to the underlying stocks once, at catalog load.
+- **Card engine:** caps (shared per group), exclusions, redemption value, fee waivers and annual-spend milestone
+  bonuses. The solver is **exact**: an LP per combination of milestone/waiver levels, over every subset of cards (an
+  unused card pays no fee), plus branch-and-bound over catalog combinations. It is optimal up to per-category point
+  flooring (under Rs1/month), never worse than the old greedy allocator (kept as a safety net and as the fallback when
+  the state space is huge), and fast: 24-card catalog in ~12 ms (Go) / ~19 ms (browser).
+- **Classifier:** regex merchant classifier for messy UPI/bank strings.
 - **Data:** PostgreSQL schema, SQL demo seed (integration test keeps it identical to the Go seed), Redis read-through
   cache, atomic catalog refresh, and an ingestion CLI with validation gates (ISIN checksum, weight sums, month-over-month
   carry-over, versioned future-dated card devaluations) run by Kubernetes CronJobs.
@@ -62,5 +70,6 @@ Docker caches test layers; add `build --no-cache` to force a fresh run. Without 
   places on a volume (AMFI scheme codes are the one thing fetched over HTTP). AMC disclosure formats vary, so each
   AMC needs its own converter to the CSV format in `data/README.md`.
 - Seed and sample fund / card data is fabricated demo data, not real terms.
-- Solver is a heuristic; not modelled: pre-2018 grandfathered cost, one shared ₹1.25L exemption across several
-  flagged pairs, fund-of-funds look-through, milestone benefits.
+- Not modelled: debt-fund indexation/slab nuances beyond the slab-rate approximation, a shared exemption across a
+  HOLD_UNTIL_LTCG exit that lands in the same financial year, the unused-card (subset) search for wallets of more than 3
+  cards (they use the full set), and per-merchant rather than per-category card rules.
