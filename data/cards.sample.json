@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "sample-cashback",
+    "issuer": "Sample Bank",
+    "effectiveFrom": "2025-01-01",
+    "changeNote": "sample data, not real card terms",
+    "card": {
+      "name": "Sample Cashback Card",
+      "annualFeePaise": 49900,
+      "feeWaiverSpendPaise": 20000000,
+      "baseEarnBps": 100,
+      "redeemPaisePerPoint": 100,
+      "rules": {
+        "ONLINE_SHOPPING": { "earnBps": 500, "excluded": false, "capGroup": "online" },
+        "FUEL": { "earnBps": 0, "excluded": true, "capGroup": "" }
+      },
+      "groupCapPoints": { "online": 5000 }
+    }
+  }
+]

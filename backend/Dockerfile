@@ -12,13 +12,20 @@ RUN --mount=type=cache,target=/go/pkg/mod go vet ./... && go test ./... -count=1
 
 # Integration tests need PostgreSQL: run via compose profile itest (sets TEST_DATABASE_URL).
 FROM base AS itest
-CMD ["go","test","./internal/catalog/...","./internal/reports/...","-run","Integration","-count=1","-v"]
+CMD ["go","test","./internal/catalog/...","./internal/reports/...","./internal/ingest/...","-run","Integration","-count=1","-v"]
 
 FROM base AS build
-RUN --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server
+RUN --mount=type=cache,target=/go/pkg/mod CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/server ./cmd/server \
+ && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/ingest ./cmd/ingest
 
 FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 COPY --from=build /out/server /server
 EXPOSE 8080
 USER nonroot:nonroot
 ENTRYPOINT ["/server"]
+
+# Image for cron jobs: docker build --target ingest. Entry point is the ingest CLI.
+FROM gcr.io/distroless/static-debian12:nonroot AS ingest
+COPY --from=build /out/ingest /ingest
+USER nonroot:nonroot
+ENTRYPOINT ["/ingest"]

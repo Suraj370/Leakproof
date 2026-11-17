@@ -1,0 +1,3 @@
+isin,amfi_code,name,amc,plan,category,equity_oriented,ter_bps,direct_ter_bps,exit_load_bps,exit_load_days,ter_as_of
+INFSAMPLE001,,Sample Flexi Cap Fund (Regular),Sample AMC,REGULAR,Flexi Cap,true,165,72,100,365,2025-03-31
+INFSAMPLE002,,Sample Flexi Cap Fund (Direct),Sample AMC,DIRECT,Flexi Cap,true,72,72,100,365,2025-03-31

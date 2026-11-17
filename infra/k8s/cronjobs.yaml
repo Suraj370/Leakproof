@@ -1,0 +1,153 @@
+# Reference-data pipeline as Kubernetes CronJobs. Build the image with:
+#   docker build --target ingest -t leakproof-ingest:latest backend/
+# Prereqs: Secret `leakproof-db` (key DATABASE_URL), optional Secret `leakproof-redis` (key REDIS_URL, used to
+# invalidate the API catalog cache), and a PVC `leakproof-data` where an upstream fetcher drops files:
+#   /data/funds.csv  /data/holdings.csv  /data/cards.json
+# Schedules are UTC. A job that rejects records exits 3 and shows as Failed, so alerting on failed Jobs catches
+# bad data; valid records in the same file are still applied.
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: leakproof-amfi-codes
+spec:
+  schedule: "0 18 * * *"   # 23:30 IST, after AMFI publishes the day NAVs
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: ingest
+              image: leakproof-ingest:latest
+              args: ["amfi"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-db, key: DATABASE_URL }
+                - name: REDIS_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-redis, key: REDIS_URL, optional: true }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: leakproof-funds-ter
+spec:
+  schedule: "0 3 * * 1"   # Mondays
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: leakproof-data
+                readOnly: true
+          containers:
+            - name: ingest
+              image: leakproof-ingest:latest
+              args: ["funds","/data/funds.csv"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-db, key: DATABASE_URL }
+                - name: REDIS_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-redis, key: REDIS_URL, optional: true }
+              volumeMounts:
+                - { name: data, mountPath: /data, readOnly: true }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: leakproof-holdings
+spec:
+  schedule: "0 6 11,15,20 * *"   # AMCs disclose by the 10th; reruns are idempotent
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: leakproof-data
+                readOnly: true
+          containers:
+            - name: ingest
+              image: leakproof-ingest:latest
+              args: ["holdings","/data/holdings.csv","--month","last"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-db, key: DATABASE_URL }
+                - name: REDIS_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-redis, key: REDIS_URL, optional: true }
+              volumeMounts:
+                - { name: data, mountPath: /data, readOnly: true }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: leakproof-card-rules
+spec:
+  schedule: "0 4 * * 1"   # file is human-reviewed and committed; this only applies it
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: leakproof-data
+                readOnly: true
+          containers:
+            - name: ingest
+              image: leakproof-ingest:latest
+              args: ["cards","/data/cards.json"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-db, key: DATABASE_URL }
+                - name: REDIS_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-redis, key: REDIS_URL, optional: true }
+              volumeMounts:
+                - { name: data, mountPath: /data, readOnly: true }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: leakproof-reap-reports
+spec:
+  schedule: "0 2 * * *"   # delete expired shared scores
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: ingest
+              image: leakproof-ingest:latest
+              args: ["reap"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-db, key: DATABASE_URL }
+                - name: REDIS_URL
+                  valueFrom:
+                    secretKeyRef: { name: leakproof-redis, key: REDIS_URL, optional: true }

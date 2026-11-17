@@ -44,6 +44,20 @@ services:
     command: ["redis-server", "--save", "", "--appendonly", "no"] # no persistence at all
     ports: ["6379:6379"]
 
+  # Reference-data loader: docker compose -f infra/docker-compose.yml --profile data run --rm ingest funds /data/funds.sample.csv
+  ingest:
+    profiles: ["data"]
+    build:
+      context: ../backend
+      target: ingest
+    environment:
+      DATABASE_URL: postgres://wealth:wealth_dev_only@postgres:5432/leakproof
+    volumes:
+      - ../data:/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   # DB integration test: docker compose -f infra/docker-compose.yml --profile itest run --rm --build backend-itest
   backend-itest:
     profiles: ["itest"]
