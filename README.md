@@ -30,10 +30,15 @@ Without Docker: `cd backend && go mod tidy && go test ./...` and `cd frontend &&
 
 ## What is and isn't built
 
-Built: overlap engine (bounded errgroup pool), STCG/LTCG/exit-load verdicts (FY-boundary and loss set-off aware),
+Built: CAS PDF upload (RC4 / AES-128 decryption, in-memory text extraction, FIFO lot reconstruction, PII-free
+output), overlap engine (bounded errgroup pool), STCG/LTCG/exit-load verdicts (FY-boundary and loss set-off aware),
 merchant classifier, card reward engine with caps / exclusions / redemption value / fee waivers, 1-and-2-card
 solver (marginal-greedy heuristic), stateless API, schema, heatmap UI, live simulator, share card.
 
-Not built yet: CAS PDF parsing (only the `StatementParser` interface and PII redaction helpers exist), the
-PostgreSQL/Redis-backed catalog (API serves an in-memory **illustrative** seed catalog), and the AMFI / card-rule
-ingestion cron jobs. Seed fund and card data is demo data, not real scheme or card terms.
+**CAS parser caveat:** it is tested against synthetic statements (`backend/testdata/`; regenerate the PDFs with
+`gen_pdf_fixtures.sh`) modelled on the usual CAMS/KFintech detailed layout. It has not been validated on real
+statements, and AES-256 encrypted PDFs are rejected with a clear error (the PDF library only supports up to AES-128).
+
+Not built yet: bank-statement upload feeding the classifier, the PostgreSQL/Redis-backed catalog (the API serves an
+in-memory **illustrative** seed catalog; schemes not in it are skipped and reported), saving a score, generated TS
+types, and the AMFI / card-rule ingestion cron jobs. Seed fund and card data is demo data, not real terms.
