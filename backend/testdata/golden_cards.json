@@ -4,7 +4,7 @@
       "id": "A",
       "name": "Demo Cashback (5% online, capped)",
       "annualFeePaise": 59900,
-      "feeWaiverSpendPaise": 20000000,
+      "feeWaiverSpendPaise": 150000000,
       "baseEarnBps": 100,
       "redeemPaisePerPoint": 100,
       "rules": {
