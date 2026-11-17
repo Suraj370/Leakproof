@@ -1,0 +1,25 @@
+Consolidated Account Statement
+CAMS - Computer Age Management Services
+01-Jan-2020 To 31-Mar-2025
+Email Id: someone@example.com   Mobile: +91 9876543210
+Name: TEST USER   PAN: ABCDE1234F
+
+Folio No: 12345678 / 90   PAN: ABCDE1234F   KYC: OK
+Demo Bluechip Fund - Regular Plan - Growth - ISIN: INFDEMO00001 (Advisor: ARN-0000) Registrar : CAMS
+Opening Unit Balance: 0.000
+10-Jan-2023 Purchase 50,000.00 500.000 100.0000 500.000
+10-Feb-2023 SIP Purchase 10,000.00 100.000 100.0000 600.000
+15-Jun-2024 Redemption (20,000.00) (150.000) 133.3333 450.000
+Closing Unit Balance: 450.000 NAV on 31-Mar-2025: INR 200.00 Total Cost Value: 45,000.00 Market Value on 31-Mar-2025: INR 90,000.00
+
+Folio No: 555
+Demo Index Fund - Direct Plan - Growth - ISIN: INFDEMO00002 Registrar : CAMS
+Opening Unit Balance: 100.000
+01-Mar-2025 Purchase 2,000.00 20.000 100.0000 120.000
+Closing Unit Balance: 120.000 NAV on 31-Mar-2025: INR 110.00 Total Cost Value: 12,000.00 Market Value on 31-Mar-2025: INR 13,200.00
+
+Folio No: 777
+Demo Old Fund - Growth - ISIN: INFDEMO00004 Registrar : CAMS
+Opening Unit Balance: 10.000
+01-Mar-2024 Redemption (1,000.00) (10.000) 100.0000 0.000
+Closing Unit Balance: 0.000 NAV on 31-Mar-2025: INR 100.00 Total Cost Value: 0.00 Market Value on 31-Mar-2025: INR 0.00
