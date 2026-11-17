@@ -192,3 +192,42 @@ func TestClassify(t *testing.T) {
 		}
 	}
 }
+
+func withMilestones(c Card, ms ...Milestone) Card {
+	c.Milestones = ms
+	return c
+}
+
+func TestMilestoneBonusPaidOnceEligibleAnnualSpendIsReached(t *testing.T) {
+	c := withMilestones(cashback(0, 0),
+		Milestone{AnnualSpendPaise: 100_000_000, BonusValuePaise: 200_000}, // Rs10L/yr => Rs2,000
+		Milestone{AnnualSpendPaise: 200_000_000, BonusValuePaise: 500_000}) // Rs20L/yr => Rs5,000
+
+	// Rs1L/month = Rs12L/yr: first milestone only.
+	y := NetYield(c, Spend{OnlineShopping: 10_000_000}, false)
+	if y.MilestonePaise != 200_000 || y.NetPaise != y.AnnualRewardPaise+200_000 {
+		t.Fatalf("%+v", y)
+	}
+	// Rs2L/month = Rs24L/yr: both are cumulative.
+	if y := NetYield(c, Spend{OnlineShopping: 20_000_000}, false); y.MilestonePaise != 700_000 {
+		t.Fatalf("%+v", y)
+	}
+	// Exactly on the threshold counts (>=).
+	if y := NetYield(c, Spend{OfflinePOS: 100_000_000 / 12}, false); y.MilestonePaise != 0 { // 8,333,333*12 = 99,999,996 < 10Cr
+		t.Fatalf("%+v", y)
+	}
+	if y := NetYield(c, Spend{OfflinePOS: 8_333_334}, false); y.MilestonePaise != 200_000 {
+		t.Fatalf("%+v", y)
+	}
+}
+
+func TestMilestoneIgnoresExcludedSpendAndUnusedCards(t *testing.T) {
+	c := withMilestones(cashback(0, 0), Milestone{AnnualSpendPaise: 100_000_000, BonusValuePaise: 200_000})
+	// Rs1.5L/month on EXCLUDED categories and fuel (excluded on this card) must not unlock the bonus.
+	if y := NetYield(c, Spend{Excluded: 10_000_000, Fuel: 5_000_000}, false); y.MilestonePaise != 0 {
+		t.Fatalf("%+v", y)
+	}
+	if y := NetYield(c, Spend{}, true); y.MilestonePaise != 0 {
+		t.Fatalf("%+v", y)
+	}
+}

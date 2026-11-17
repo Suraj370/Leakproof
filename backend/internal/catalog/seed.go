@@ -35,7 +35,7 @@ func Seed() *Catalog {
 		m[f.ISIN] = f
 	}
 
-	return &Catalog{Funds: m, Cards: []cards.Card{
+	c := &Catalog{Funds: m, Cards: []cards.Card{
 		{
 			ID: "demo-cashback", Name: "Demo Cashback Card (5% online, capped)",
 			AnnualFeePaise: 59_900, FeeWaiverSpendPaise: 20_000_000, BaseEarnBps: 100, RedeemPaisePerPoint: 100,
@@ -54,6 +54,7 @@ func Seed() *Catalog {
 				cards.Utilities:     {EarnBps: 100},
 			},
 			GroupCapPoints: map[string]int64{"travel": 15_000},
+			Milestones:     []cards.Milestone{{AnnualSpendPaise: 80_000_000, BonusValuePaise: 1_000_000}}, // Rs8L/yr => Rs10,000 voucher
 		},
 		{
 			ID: "demo-flat", Name: "Demo Flat 1.5% Card",
@@ -68,4 +69,15 @@ func Seed() *Catalog {
 			GroupCapPoints: map[string]int64{},
 		},
 	}}
+	c.normalize()
+	return c
+}
+
+// normalize makes optional slices non-nil so API JSON always carries [] rather than null.
+func (c *Catalog) normalize() {
+	for i := range c.Cards {
+		if c.Cards[i].Milestones == nil {
+			c.Cards[i].Milestones = []cards.Milestone{}
+		}
+	}
 }

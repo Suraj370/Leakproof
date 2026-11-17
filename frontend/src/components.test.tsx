@@ -65,7 +65,7 @@ describe('WealthLeakSummary', () => {
 
 const flat = (id: string, bps: number): CreditCard => ({
   id, name: `Card ${id}`, annualFeePaise: 0, feeWaiverSpendPaise: 0, baseEarnBps: bps, redeemPaisePerPoint: 100,
-  rules: {}, groupCapPoints: {},
+  rules: {}, groupCapPoints: {}, milestones: [],
 });
 
 describe('CardSimulator', () => {

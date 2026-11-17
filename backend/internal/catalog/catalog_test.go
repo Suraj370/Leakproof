@@ -131,6 +131,9 @@ func TestIntegrationLoadMatchesSeed(t *testing.T) {
 			g.BaseEarnBps != w.BaseEarnBps || g.RedeemPaisePerPoint != w.RedeemPaisePerPoint {
 			t.Errorf("card %s fields differ:\n got %+v\nwant %+v", w.ID, g, w)
 		}
+		if !reflect.DeepEqual(g.Milestones, w.Milestones) {
+			t.Errorf("card %s milestones differ: %+v vs %+v", w.ID, g.Milestones, w.Milestones)
+		}
 		if !reflect.DeepEqual(g.Rules, w.Rules) || !reflect.DeepEqual(g.GroupCapPoints, w.GroupCapPoints) {
 			t.Errorf("card %s rules/caps differ:\n got %+v %v\nwant %+v %v", w.ID, g.Rules, g.GroupCapPoints, w.Rules, w.GroupCapPoints)
 		}

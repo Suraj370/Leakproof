@@ -38,6 +38,13 @@ type CategoryRule struct {
 	CapGroup string `json:"capGroup"` // categories sharing one monthly cap use the same group
 }
 
+// Milestone is an annual-spend bonus: once eligible spend (non-excluded categories) for the year reaches
+// AnnualSpendPaise the card pays BonusValuePaise (a voucher or points, already converted to paise).
+type Milestone struct {
+	AnnualSpendPaise int64 `json:"annualSpendPaise"`
+	BonusValuePaise  int64 `json:"bonusValuePaise"`
+}
+
 type Card struct {
 	ID                  string                    `json:"id"`
 	Name                string                    `json:"name"`
@@ -47,6 +54,7 @@ type Card struct {
 	RedeemPaisePerPoint int64                     `json:"redeemPaisePerPoint"` // 100 = Rs1/pt, 25 = Rs0.25/pt
 	Rules               map[Category]CategoryRule `json:"rules"`
 	GroupCapPoints      map[string]int64          `json:"groupCapPoints"` // per statement cycle
+	Milestones          []Milestone               `json:"milestones"`
 }
 
 type Spend map[Category]int64 // monthly paise
@@ -55,6 +63,7 @@ type CardYield struct {
 	CardID            string `json:"cardId"`
 	AnnualRewardPaise int64  `json:"annualRewardPaise"`
 	LostToCapsPaise   int64  `json:"lostToCapsPaise"`
+	MilestonePaise    int64  `json:"milestoneBonusPaise"`
 	FeePaise          int64  `json:"feePaise"`
 	NetPaise          int64  `json:"netPaise"`
 }
@@ -130,7 +139,12 @@ func NetYield(c Card, monthly Spend, holdFee bool) CardYield {
 	if (total > 0 || holdFee) && !waived {
 		y.FeePaise = c.AnnualFeePaise
 	}
-	y.NetPaise = y.AnnualRewardPaise - y.FeePaise
+	for _, m := range c.Milestones {
+		if eligible*12 >= m.AnnualSpendPaise {
+			y.MilestonePaise += m.BonusValuePaise
+		}
+	}
+	y.NetPaise = y.AnnualRewardPaise + y.MilestonePaise - y.FeePaise
 	return y
 }
 

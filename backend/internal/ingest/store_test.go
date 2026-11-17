@@ -14,6 +14,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"leakproof/internal/cards"
 	"leakproof/internal/catalog"
 )
 
@@ -345,5 +346,58 @@ func TestIntegrationFundOfFundsIsLookedThroughOnLoad(t *testing.T) {
 	}
 	if c.Funds[fof].HoldingNames["INE040A01034"] != "HDFC Bank" {
 		t.Fatalf("names: %v", c.Funds[fof].HoldingNames)
+	}
+}
+
+func TestIntegrationCardMilestonesVersioned(t *testing.T) {
+	pool := tempDB(t)
+	ctx := context.Background()
+	apply := func(js string) CardResult {
+		in, err := ParseCardsJSON(strings.NewReader(js))
+		if err != nil {
+			t.Fatal(err)
+		}
+		res, err := ApplyCards(ctx, pool, in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return res
+	}
+	// thresholds given out of order: stored and compared sorted
+	v1 := withMilestones(`[{"annualSpendPaise": 200000000, "bonusValuePaise": 500000},{"annualSpendPaise": 80000000, "bonusValuePaise": 1000000}]`)
+	if r := apply(v1); len(r.Created) != 1 {
+		t.Fatalf("%+v", r)
+	}
+	if r := apply(v1); len(r.Unchanged) != 1 {
+		t.Fatalf("re-apply must be a no-op: %+v", r)
+	}
+	// same milestones, different order in the file: still unchanged
+	reordered := withMilestones(`[{"annualSpendPaise": 80000000, "bonusValuePaise": 1000000},{"annualSpendPaise": 200000000, "bonusValuePaise": 500000}]`)
+	if r := apply(reordered); len(r.Unchanged) != 1 {
+		t.Fatalf("order must not matter: %+v", r)
+	}
+
+	c, _ := catalog.Load(ctx, pool)
+	var ms []cards.Milestone
+	for _, cd := range c.Cards {
+		if cd.ID == "test-cashback" {
+			ms = cd.Milestones
+		}
+	}
+	if len(ms) != 2 || ms[0].AnnualSpendPaise != 80_000_000 || ms[0].BonusValuePaise != 1_000_000 {
+		t.Fatalf("%+v", ms)
+	}
+
+	// Devalued milestone (voucher cut) is a new version effective later.
+	cut := strings.Replace(v1, `"bonusValuePaise": 1000000`, `"bonusValuePaise": 600000`, 1)
+	cut = strings.Replace(cut, `2025-04-01`, `2025-06-01`, 1)
+	if r := apply(cut); len(r.Updated) != 1 {
+		t.Fatalf("milestone change must create a new version: %+v", r)
+	}
+	c, _ = catalog.Load(ctx, pool)
+	for _, cd := range c.Cards {
+		if cd.ID == "test-cashback" && cd.Milestones[0].BonusValuePaise != 600_000 {
+			t.Fatalf("old milestone still served: %+v", cd.Milestones)
+		}
 	}
 }

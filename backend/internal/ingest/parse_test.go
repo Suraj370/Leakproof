@@ -227,3 +227,26 @@ func TestParseFundsGrandfatherNAV(t *testing.T) {
 		t.Fatalf("%+v", rows)
 	}
 }
+
+func withMilestones(ms string) string {
+	return strings.Replace(cardsJSON, `"groupCapPoints": {"online": 2000}`, `"groupCapPoints": {"online": 2000}, "milestones": `+ms, 1)
+}
+
+func TestParseCardsMilestones(t *testing.T) {
+	in, err := ParseCardsJSON(strings.NewReader(withMilestones(`[{"annualSpendPaise": 80000000, "bonusValuePaise": 1000000}]`)))
+	if err != nil || len(in[0].Card.Milestones) != 1 {
+		t.Fatalf("%v %+v", err, in)
+	}
+	bad := map[string]string{
+		"zero spend":    `[{"annualSpendPaise": 0, "bonusValuePaise": 5}]`,
+		"zero bonus":    `[{"annualSpendPaise": 100, "bonusValuePaise": 0}]`,
+		"bonus > spend": `[{"annualSpendPaise": 100, "bonusValuePaise": 200}]`,
+		"duplicate":     `[{"annualSpendPaise": 1000, "bonusValuePaise": 5},{"annualSpendPaise": 1000, "bonusValuePaise": 6}]`,
+		"too many":      `[{"annualSpendPaise":1000,"bonusValuePaise":1},{"annualSpendPaise":2000,"bonusValuePaise":1},{"annualSpendPaise":3000,"bonusValuePaise":1},{"annualSpendPaise":4000,"bonusValuePaise":1},{"annualSpendPaise":5000,"bonusValuePaise":1},{"annualSpendPaise":6000,"bonusValuePaise":1},{"annualSpendPaise":7000,"bonusValuePaise":1}]`,
+	}
+	for name, ms := range bad {
+		if _, err := ParseCardsJSON(strings.NewReader(withMilestones(ms))); err == nil {
+			t.Errorf("%s: expected error", name)
+		}
+	}
+}

@@ -396,6 +396,21 @@ func (c CardInput) validate() error {
 	if _, err := time.Parse("2006-01-02", c.EffectiveFrom); err != nil {
 		return errors.New("effectiveFrom must be YYYY-MM-DD")
 	}
+	if len(k.Milestones) > 6 {
+		return errors.New("at most 6 milestones")
+	}
+	seenMS := map[int64]bool{}
+	for _, m := range k.Milestones {
+		switch {
+		case m.AnnualSpendPaise <= 0 || m.BonusValuePaise <= 0:
+			return errors.New("milestone spend and bonus must be positive")
+		case m.BonusValuePaise > m.AnnualSpendPaise:
+			return errors.New("milestone bonus larger than the spend that unlocks it")
+		case seenMS[m.AnnualSpendPaise]:
+			return fmt.Errorf("duplicate milestone threshold %d", m.AnnualSpendPaise)
+		}
+		seenMS[m.AnnualSpendPaise] = true
+	}
 	for cat, r := range k.Rules {
 		switch {
 		case !cat.Valid():

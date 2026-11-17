@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -117,6 +118,9 @@ func normalise(c cards.Card) cards.Card {
 		}
 	}
 	c.GroupCapPoints = caps
+	ms := append([]cards.Milestone{}, c.Milestones...) // non-nil, sorted: equal milestones compare equal
+	sort.Slice(ms, func(i, j int) bool { return ms[i].AnnualSpendPaise < ms[j].AnnualSpendPaise })
+	c.Milestones = ms
 	return c
 }
 
@@ -161,13 +165,31 @@ func loadCurrent(ctx context.Context, tx pgx.Tx, slug string) (*currentCard, err
 			cc.card.GroupCapPoints[group] = cp
 		}
 	}
-	return cc, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close()
+
+	mrows, err := tx.Query(ctx, `SELECT annual_spend_paise, bonus_value_paise FROM card_milestones WHERE card_id = $1`, cc.id)
+	if err != nil {
+		return nil, err
+	}
+	defer mrows.Close()
+	for mrows.Next() {
+		var m cards.Milestone
+		if err := mrows.Scan(&m.AnnualSpendPaise, &m.BonusValuePaise); err != nil {
+			return nil, err
+		}
+		cc.card.Milestones = append(cc.card.Milestones, m)
+	}
+	return cc, mrows.Err()
 }
 
 func sameCard(a, b cards.Card) bool {
 	return a.Name == b.Name && a.AnnualFeePaise == b.AnnualFeePaise && a.FeeWaiverSpendPaise == b.FeeWaiverSpendPaise &&
 		a.BaseEarnBps == b.BaseEarnBps && a.RedeemPaisePerPoint == b.RedeemPaisePerPoint &&
-		reflect.DeepEqual(a.Rules, b.Rules) && reflect.DeepEqual(a.GroupCapPoints, b.GroupCapPoints)
+		reflect.DeepEqual(a.Rules, b.Rules) && reflect.DeepEqual(a.GroupCapPoints, b.GroupCapPoints) &&
+		reflect.DeepEqual(a.Milestones, b.Milestones)
 }
 
 // ApplyCards versions card rules: unchanged cards are untouched (idempotent), changed cards close the
@@ -229,6 +251,12 @@ func ApplyCards(ctx context.Context, pool *pgxpool.Pool, in []CardInput) (CardRe
 					VALUES ($1, $2::spend_category, $3, $4, $5, $6)`,
 					id, string(cat), r.EarnBps, r.Excluded, group, capPts); err != nil {
 					return fmt.Errorf("card %s rule %s: %w", ci.Slug, cat, err)
+				}
+			}
+			for _, m := range card.Milestones {
+				if _, err := tx.Exec(ctx, `INSERT INTO card_milestones (card_id, annual_spend_paise, bonus_value_paise) VALUES ($1,$2,$3)`,
+					id, m.AnnualSpendPaise, m.BonusValuePaise); err != nil {
+					return fmt.Errorf("card %s milestone: %w", ci.Slug, err)
 				}
 			}
 		}

@@ -5,7 +5,7 @@ import { DEFAULT_SPEND, useCardSimulator, useSimStore } from './useCardSimulator
 
 const flat = (id: string, bps: number): CreditCard => ({
   id, name: id, annualFeePaise: 0, feeWaiverSpendPaise: 0, baseEarnBps: bps, redeemPaisePerPoint: 100,
-  rules: {}, groupCapPoints: {},
+  rules: {}, groupCapPoints: {}, milestones: [],
 });
 const catalog = [flat('low', 100), flat('high', 200)];
 

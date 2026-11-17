@@ -45,6 +45,7 @@ func Unmarshal(b []byte) (*Catalog, error) {
 		return nil, err
 	}
 	c := &Catalog{Funds: make(map[string]mf.Fund, len(s.Funds)), Cards: s.Cards}
+	c.normalize()
 	for _, f := range s.Funds {
 		f.Fund.Holdings, f.Fund.HoldingNames = f.Holdings, f.HoldingNames
 		if f.GrandfatherN != "" {

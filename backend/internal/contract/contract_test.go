@@ -32,6 +32,7 @@ var mirrored = map[string]reflect.Type{
 	"Lot":            reflect.TypeOf(mf.Lot{}),
 	"Position":       reflect.TypeOf(mf.Position{}),
 	"CreditCard":     reflect.TypeOf(cards.Card{}),
+	"Milestone":      reflect.TypeOf(cards.Milestone{}),
 	"CategoryRule":   reflect.TypeOf(cards.CategoryRule{}),
 	"CardYield":      reflect.TypeOf(cards.CardYield{}),
 	"FundSummary":    reflect.TypeOf(api.FundSummary{}),

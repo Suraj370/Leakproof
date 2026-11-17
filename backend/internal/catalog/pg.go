@@ -127,10 +127,31 @@ func Load(ctx context.Context, pool *pgxpool.Pool) (*Catalog, error) {
 		return nil, err
 	}
 
+	rows, err = pool.Query(ctx, `SELECT card_id, annual_spend_paise, bonus_value_paise FROM card_milestones ORDER BY annual_spend_paise`)
+	if err != nil {
+		return nil, fmt.Errorf("milestones: %w", err)
+	}
+	for rows.Next() {
+		var id int64
+		var m cards.Milestone
+		if err := rows.Scan(&id, &m.AnnualSpendPaise, &m.BonusValuePaise); err != nil {
+			rows.Close()
+			return nil, fmt.Errorf("milestones scan: %w", err)
+		}
+		if cd, ok := byID[id]; ok {
+			cd.Milestones = append(cd.Milestones, m)
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	for _, id := range order {
 		c.Cards = append(c.Cards, *byID[id])
 	}
 	// Fund-of-funds hold other funds: expand them once, here, so every overlap comparison sees real stocks.
 	c.Funds = mf.LookThrough(c.Funds)
+	c.normalize()
 	return c, nil
 }

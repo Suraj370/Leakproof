@@ -39,12 +39,14 @@ export function netYield(c: CreditCard, monthly: Spend, holdFee = false): CardYi
   const annualRewardPaise = pts * c.redeemPaisePerPoint * 12;
   const waived = c.feeWaiverSpendPaise > 0 && eligible * 12 >= c.feeWaiverSpendPaise;
   const feePaise = (total > 0 || holdFee) && !waived ? c.annualFeePaise : 0;
+  const milestoneBonusPaise = c.milestones.reduce((s, m) => s + (eligible * 12 >= m.annualSpendPaise ? m.bonusValuePaise : 0), 0);
   return {
     cardId: c.id,
     annualRewardPaise,
     lostToCapsPaise: (raw - pts) * c.redeemPaisePerPoint * 12,
+    milestoneBonusPaise,
     feePaise,
-    netPaise: annualRewardPaise - feePaise,
+    netPaise: annualRewardPaise + milestoneBonusPaise - feePaise,
   };
 }
 

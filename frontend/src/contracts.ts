@@ -19,6 +19,9 @@ export type Spend = Partial<Record<Category, Paise>>;
 
 export interface CategoryRule { earnBps: Bps; excluded: boolean; capGroup: string }
 
+/** Annual-spend bonus: once eligible yearly spend reaches annualSpendPaise the card pays bonusValuePaise. */
+export interface Milestone { annualSpendPaise: Paise; bonusValuePaise: Paise }
+
 export interface CreditCard {
   id: string;
   name: string;
@@ -28,12 +31,14 @@ export interface CreditCard {
   redeemPaisePerPoint: number;
   rules: Partial<Record<Category, CategoryRule>>;
   groupCapPoints: Record<string, number>;
+  milestones: Milestone[];
 }
 
 export interface CardYield {
   cardId: string;
   annualRewardPaise: Paise;
   lostToCapsPaise: Paise;
+  milestoneBonusPaise: Paise;
   feePaise: Paise;
   netPaise: Paise;
 }

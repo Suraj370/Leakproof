@@ -8,10 +8,21 @@
       "baseEarnBps": 100,
       "redeemPaisePerPoint": 100,
       "rules": {
-        "ONLINE_SHOPPING": { "earnBps": 500, "excluded": false, "capGroup": "online" },
-        "FUEL": { "earnBps": 0, "excluded": true, "capGroup": "" }
+        "ONLINE_SHOPPING": {
+          "earnBps": 500,
+          "excluded": false,
+          "capGroup": "online"
+        },
+        "FUEL": {
+          "earnBps": 0,
+          "excluded": true,
+          "capGroup": ""
+        }
       },
-      "groupCapPoints": { "online": 5000 }
+      "groupCapPoints": {
+        "online": 5000
+      },
+      "milestones": []
     },
     {
       "id": "B",
@@ -21,16 +32,50 @@
       "baseEarnBps": 150,
       "redeemPaisePerPoint": 100,
       "rules": {},
-      "groupCapPoints": {}
+      "groupCapPoints": {},
+      "milestones": [
+        {
+          "annualSpendPaise": 100000000,
+          "bonusValuePaise": 200000
+        },
+        {
+          "annualSpendPaise": 200000000,
+          "bonusValuePaise": 500000
+        }
+      ]
     }
   ],
-  "monthlySpendPaise": { "ONLINE_SHOPPING": 20000000, "FUEL": 1000000, "DINING": 2000000 },
+  "monthlySpendPaise": {
+    "ONLINE_SHOPPING": 20000000,
+    "FUEL": 1000000,
+    "DINING": 2000000
+  },
   "expectedAllocation": {
-    "A": { "ONLINE_SHOPPING": 10000000 },
-    "B": { "ONLINE_SHOPPING": 10000000, "DINING": 2000000, "FUEL": 1000000 }
+    "A": {
+      "ONLINE_SHOPPING": 10000000
+    },
+    "B": {
+      "ONLINE_SHOPPING": 10000000,
+      "DINING": 2000000,
+      "FUEL": 1000000
+    }
   },
   "expectedYields": [
-    { "cardId": "A", "annualRewardPaise": 6000000, "lostToCapsPaise": 0, "feePaise": 59900, "netPaise": 5940100 },
-    { "cardId": "B", "annualRewardPaise": 2340000, "lostToCapsPaise": 0, "feePaise": 0, "netPaise": 2340000 }
+    {
+      "cardId": "A",
+      "annualRewardPaise": 6000000,
+      "lostToCapsPaise": 0,
+      "feePaise": 59900,
+      "netPaise": 5940100,
+      "milestoneBonusPaise": 0
+    },
+    {
+      "cardId": "B",
+      "annualRewardPaise": 2340000,
+      "lostToCapsPaise": 0,
+      "feePaise": 0,
+      "netPaise": 2540000,
+      "milestoneBonusPaise": 200000
+    }
   ]
 }

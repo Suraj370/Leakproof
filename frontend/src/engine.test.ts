@@ -18,7 +18,7 @@ const golden: Golden = JSON.parse(
 const cashback = (fee = 0, waiver = 0): CreditCard => ({
   id: 'cb', name: 'cb', annualFeePaise: fee, feeWaiverSpendPaise: waiver, baseEarnBps: 100, redeemPaisePerPoint: 100,
   rules: { ONLINE_SHOPPING: { earnBps: 500, excluded: false, capGroup: 'online' }, FUEL: { earnBps: 0, excluded: true, capGroup: '' } },
-  groupCapPoints: { online: 5000 },
+  groupCapPoints: { online: 5000 }, milestones: [],
 });
 
 describe('Go/TS parity (shared golden fixture)', () => {
@@ -51,14 +51,14 @@ describe('netYield', () => {
   });
   it('scales by redemption value', () => {
     const c: CreditCard = { id: 'rp', name: 'rp', annualFeePaise: 0, feeWaiverSpendPaise: 0, baseEarnBps: 333,
-      redeemPaisePerPoint: 25, rules: {}, groupCapPoints: {} };
+      redeemPaisePerPoint: 25, rules: {}, groupCapPoints: {}, milestones: [] };
     expect(netYield(c, { OFFLINE_POS: 10_000_000 }).annualRewardPaise).toBe(3330 * 25 * 12);
   });
   it('spends a shared cap on the higher-rate category first', () => {
     const c: CreditCard = { id: 's', name: 's', annualFeePaise: 0, feeWaiverSpendPaise: 0, baseEarnBps: 0,
       redeemPaisePerPoint: 100,
       rules: { DINING: { earnBps: 500, excluded: false, capGroup: 'g' }, ONLINE_SHOPPING: { earnBps: 200, excluded: false, capGroup: 'g' } },
-      groupCapPoints: { g: 1000 } };
+      groupCapPoints: { g: 1000 }, milestones: [] };
     expect(netYield(c, { DINING: 2_000_000, ONLINE_SHOPPING: 2_000_000 }).annualRewardPaise).toBe(1000 * 100 * 12);
   });
 });
@@ -66,9 +66,9 @@ describe('netYield', () => {
 describe('bestCombo / yieldBps', () => {
   const a = { ...cashback(), id: 'A' };
   const b: CreditCard = { id: 'B', name: 'B', annualFeePaise: 0, feeWaiverSpendPaise: 0, baseEarnBps: 150,
-    redeemPaisePerPoint: 100, rules: {}, groupCapPoints: {} };
+    redeemPaisePerPoint: 100, rules: {}, groupCapPoints: {}, milestones: [] };
   const bad: CreditCard = { id: 'BAD', name: 'BAD', annualFeePaise: 1_000_000, feeWaiverSpendPaise: 0, baseEarnBps: 50,
-    redeemPaisePerPoint: 100, rules: {}, groupCapPoints: {} };
+    redeemPaisePerPoint: 100, rules: {}, groupCapPoints: {}, milestones: [] };
   const spend: Spend = { ONLINE_SHOPPING: 20_000_000, DINING: 2_000_000 };
 
   it('picks A+B and reports a positive gain over the current wallet', () => {
@@ -84,5 +84,27 @@ describe('bestCombo / yieldBps', () => {
     // Rs1,000/month spend, Rs180/yr net => 1.5% => 150 bps
     expect(yieldBps(18_000, { OFFLINE_POS: 100_000 })).toBe(150);
     expect(yieldBps(100, {})).toBe(0);
+  });
+});
+
+describe('milestones', () => {
+  const ms = (c: CreditCard, ...m: CreditCard['milestones']): CreditCard => ({ ...c, milestones: m });
+  const card = ms(cashback(),
+    { annualSpendPaise: 100_000_000, bonusValuePaise: 200_000 },
+    { annualSpendPaise: 200_000_000, bonusValuePaise: 500_000 });
+
+  it('pays each milestone once eligible annual spend reaches it (cumulative)', () => {
+    expect(netYield(card, { ONLINE_SHOPPING: 10_000_000 }).milestoneBonusPaise).toBe(200_000);
+    expect(netYield(card, { ONLINE_SHOPPING: 20_000_000 }).milestoneBonusPaise).toBe(700_000);
+  });
+  it('counts the threshold itself (>=) and nothing below it', () => {
+    expect(netYield(card, { OFFLINE_POS: 8_333_333 }).milestoneBonusPaise).toBe(0); // 99,999,996 a year
+    expect(netYield(card, { OFFLINE_POS: 8_333_334 }).milestoneBonusPaise).toBe(200_000);
+  });
+  it('ignores excluded spend and unused cards, and adds the bonus to net', () => {
+    expect(netYield(card, { EXCLUDED: 10_000_000, FUEL: 5_000_000 }).milestoneBonusPaise).toBe(0);
+    expect(netYield(card, {}, true).milestoneBonusPaise).toBe(0);
+    const y = netYield(card, { ONLINE_SHOPPING: 10_000_000 });
+    expect(y.netPaise).toBe(y.annualRewardPaise + 200_000 - y.feePaise);
   });
 });
