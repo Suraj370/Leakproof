@@ -1,44 +1,66 @@
 # Leakproof
 
 Mutual fund overlap / tax-aware consolidation and Indian credit card reward optimiser, framed as
-"annual rupees left on the table". Guest mode only: request bodies are processed in memory and never stored.
+"annual rupees left on the table". Guest mode: uploaded statements are processed in memory and never stored.
 
 ```
-infra/     docker-compose.yml (Dockerfiles live beside the code in backend/ and frontend/)
-backend/   Go 1.22 + Fiber  (internal/mf, internal/cards, internal/api, migrations/)
+backend/   Go 1.22 + Fiber   internal/{mf,cards,cas,statement,catalog,reports,ingest,api,contract}, cmd/{server,ingest}, migrations/
 frontend/  React 19 + TS strict + Tailwind + Zustand + Vitest
+infra/     docker-compose.yml, k8s/cronjobs.yaml  (Dockerfiles live beside the code in backend/ and frontend/)
+data/      sample (fabricated) files for the ingestion CLI
 ```
 
-All money is integer paise, all rates are basis points. `backend/testdata/golden_cards.json` is asserted by
-both the Go and TypeScript test suites so the server and the client simulator can't drift.
+All money is integer paise, all rates are basis points. Two shared fixtures keep the layers honest:
+`backend/testdata/golden_cards.json` (Go and TS card engines must agree) and
+`backend/testdata/contract_fields.json` (Go API structs and `frontend/src/contracts.ts` must agree).
 
 ## Run (Docker)
 
 ```bash
-docker compose -f infra/docker-compose.yml up --build            # UI on http://localhost:3000, API on :8080
-docker compose -f infra/docker-compose.yml --profile data up -d postgres redis   # optional: schema in backend/migrations is auto-applied
+docker compose -f infra/docker-compose.yml up --build      # UI http://localhost:3000, API :8080, in-memory demo catalog
+```
+
+Database-backed catalog + ingestion (see `data/README.md`):
+
+```bash
+docker compose -f infra/docker-compose.yml --profile data up -d postgres redis
+docker compose -f infra/docker-compose.yml --profile data run --rm ingest funds /data/funds.sample.csv
+DATABASE_URL=postgres://wealth:wealth_dev_only@postgres:5432/leakproof \
+  docker compose -f infra/docker-compose.yml --profile data up -d --build backend frontend
 ```
 
 ## Tests
 
 ```bash
-docker compose -f infra/docker-compose.yml --profile test run --rm --build backend-test    # go vet + go test
-docker compose -f infra/docker-compose.yml --profile test run --rm --build frontend-test   # tsc + vitest
+docker compose -f infra/docker-compose.yml --profile test run --rm --build backend-test     # go vet + unit tests
+docker compose -f infra/docker-compose.yml --profile test run --rm --build frontend-test    # tsc + vitest
+docker compose -f infra/docker-compose.yml --profile itest run --rm --build backend-itest   # real PostgreSQL integration
 ```
 
-Without Docker: `cd backend && go mod tidy && go test ./...` and `cd frontend && pnpm install && pnpm test`.
+Docker caches test layers; add `build --no-cache` to force a fresh run. Without Docker:
+`cd backend && go mod tidy && go test ./...` and `cd frontend && pnpm install && pnpm test`.
 
-## What is and isn't built
+## What is built
 
-Built: CAS PDF upload (RC4 / AES-128 decryption, in-memory text extraction, FIFO lot reconstruction, PII-free
-output), overlap engine (bounded errgroup pool), STCG/LTCG/exit-load verdicts (FY-boundary and loss set-off aware),
-merchant classifier, card reward engine with caps / exclusions / redemption value / fee waivers, 1-and-2-card
-solver (marginal-greedy heuristic), stateless API, schema, heatmap UI, live simulator, share card.
+- **Statement intake:** CAMS/KFintech CAS PDF (RC4 / AES-128, in-memory decrypt, FIFO lots, PII-free output) and
+  bank / credit-card CSV (header detection, debits only, category averages) feeding the simulator sliders.
+- **Engines:** overlap on a bounded errgroup pool; STCG/LTCG/exit-load verdicts (FY-boundary and loss set-off aware);
+  card rewards with caps, exclusions, redemption value and fee waivers; 1-and-2-card solver (marginal-greedy heuristic);
+  merchant classifier.
+- **Data:** PostgreSQL schema, SQL demo seed (integration test keeps it identical to the Go seed), Redis read-through
+  cache, atomic catalog refresh, and an ingestion CLI with validation gates (ISIN checksum, weight sums, month-over-month
+  carry-over, versioned future-dated card devaluations) run by Kubernetes CronJobs.
+- **Sharing:** validated, rate-limited, anonymised score saving with a public `/r/:slug` page and 90-day expiry.
+- **UI:** upload flows, clickable overlap heatmap, live simulator, share card.
 
-**CAS parser caveat:** it is tested against synthetic statements (`backend/testdata/`; regenerate the PDFs with
-`gen_pdf_fixtures.sh`) modelled on the usual CAMS/KFintech detailed layout. It has not been validated on real
-statements, and AES-256 encrypted PDFs are rejected with a clear error (the PDF library only supports up to AES-128).
+## Known gaps
 
-Not built yet: bank-statement upload feeding the classifier, the PostgreSQL/Redis-backed catalog (the API serves an
-in-memory **illustrative** seed catalog; schemes not in it are skipped and reported), saving a score, generated TS
-types, and the AMFI / card-rule ingestion cron jobs. Seed fund and card data is demo data, not real terms.
+- **CAS parser is validated on synthetic statements only** (`backend/testdata/`, PDFs regenerated by
+  `gen_pdf_fixtures.sh`). Real statements may differ. AES-256 encrypted PDFs are rejected with a clear error
+  (the PDF library supports up to AES-128).
+- **No automatic source fetching** for holdings / TER / card rules: the CronJobs apply files an upstream fetcher
+  places on a volume (AMFI scheme codes are the one thing fetched over HTTP). AMC disclosure formats vary, so each
+  AMC needs its own converter to the CSV format in `data/README.md`.
+- Seed and sample fund / card data is fabricated demo data, not real terms.
+- Solver is a heuristic; not modelled: pre-2018 grandfathered cost, one shared ₹1.25L exemption across several
+  flagged pairs, fund-of-funds look-through, milestone benefits.
