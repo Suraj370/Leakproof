@@ -44,6 +44,34 @@ type ExitCost struct {
 	LTCGTaxPaise  int64 `json:"ltcgTaxPaise"`
 	ExitLoadPaise int64 `json:"exitLoadPaise"`
 	TotalPaise    int64 `json:"totalPaise"`
+	// ExemptionUsedPaise is how much of the Rs1.25L LTCG exemption this exit consumes (for sharing it across exits).
+	ExemptionUsedPaise int64 `json:"exemptionUsedPaise"`
+}
+
+// grandfatherCutoff: units acquired BEFORE 1 Feb 2018 get a stepped-up cost of acquisition.
+var grandfatherCutoff = time.Date(2018, 2, 1, 0, 0, 0, 0, time.UTC)
+
+// grandfatheredCost applies Sec. 55(2)(ac): cost = max(actual cost, min(FMV on 31-Jan-2018, sale value)).
+// Without a known FMV the actual cost is used (tax can only be overstated; see grandfatherNote).
+func grandfatheredCost(f Fund, l Lot) int64 {
+	if !f.EquityOriented || !l.PurchaseDate.Before(grandfatherCutoff) || f.GrandfatherNAV.IsZero() {
+		return l.CostPaise
+	}
+	fmv := l.Units.Mul(f.GrandfatherNAV).Mul(decimal.NewFromInt(100)).Round(0).IntPart()
+	return max(l.CostPaise, min(fmv, l.ValuePaise))
+}
+
+// grandfatherNote explains when a pre-2018 lot could not be stepped up because the fund has no 31-Jan-2018 NAV.
+func grandfatherNote(f Fund, lots []Lot) string {
+	if !f.EquityOriented || !f.GrandfatherNAV.IsZero() {
+		return ""
+	}
+	for _, l := range lots {
+		if l.PurchaseDate.Before(grandfatherCutoff) {
+			return "Units bought before Feb 2018 are taxed on actual cost because the 31-Jan-2018 NAV for " + f.ISIN + " is not loaded; tax may be overstated."
+		}
+	}
+	return ""
 }
 
 func (t TaxConfig) withCess(tax int64) int64 { return bps(tax, 10_000+t.CessBps) }
@@ -57,10 +85,10 @@ func (t TaxConfig) exitCost(f Fund, lots []Lot, at time.Time, exemptionLeft int6
 		if f.ExitLoadDays > 0 && age < f.ExitLoadDays {
 			load += bps(l.ValuePaise, f.ExitLoadBps)
 		}
-		if gain := l.ValuePaise - l.CostPaise; age > t.LongTermDays {
-			lt += gain
+		if age > t.LongTermDays {
+			lt += l.ValuePaise - grandfatheredCost(f, l)
 		} else {
-			st += gain
+			st += l.ValuePaise - l.CostPaise
 		}
 	}
 	c := ExitCost{ExitLoadPaise: load}
@@ -80,6 +108,7 @@ func (t TaxConfig) exitCost(f Fund, lots []Lot, at time.Time, exemptionLeft int6
 		if st > 0 {
 			c.STCGTaxPaise = t.withCess(bps(st, t.STCGBps))
 		}
+		c.ExemptionUsedPaise = min(max(lt, 0), exemptionLeft)
 		if taxable := lt - exemptionLeft; taxable > 0 {
 			c.LTCGTaxPaise = t.withCess(bps(taxable, t.LTCGBps))
 		}
@@ -106,6 +135,7 @@ type PairAction struct {
 	ExitNow           ExitCost   `json:"exitNow"`
 	AnnualSavingPaise int64      `json:"annualSavingPaise"`
 	HoldUntil         *time.Time `json:"holdUntil,omitempty"`
+	Notes             []string   `json:"notes,omitempty"`
 }
 
 func (t TaxConfig) paybackOK(cost, annualSaving int64) bool {
@@ -117,6 +147,9 @@ func (t TaxConfig) paybackOK(cost, annualSaving int64) bool {
 func (t TaxConfig) Judge(exit, keep Fund, pos Position, now time.Time, realisedLTCG int64) PairAction {
 	saving := bps(pos.ValuePaise(), exit.TERBps-keep.TERBps)
 	act := PairAction{Verdict: Keep, AnnualSavingPaise: saving}
+	if n := grandfatherNote(exit, pos.Lots); n != "" {
+		act.Notes = append(act.Notes, n)
+	}
 	if saving <= 0 {
 		return act
 	}

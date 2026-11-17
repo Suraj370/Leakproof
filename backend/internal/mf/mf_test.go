@@ -263,3 +263,116 @@ func TestZeroAndScrubPII(t *testing.T) {
 		t.Fatalf("not scrubbed: %s", got)
 	}
 }
+
+func lotUnits(buy time.Time, units string, costRs, valueRs int64) Lot {
+	l := lot(buy, costRs, valueRs)
+	l.Units = decimal.RequireFromString(units)
+	return l
+}
+
+func TestGrandfatheredCostStepsUpPre2018Units(t *testing.T) {
+	cfg := DefaultTaxConfig(3000)
+	cfg.CessBps = 0
+	f := eqFund("A", 100, nil)
+	f.GrandfatherNAV = decimal.RequireFromString("5000") // NAV on 31-Jan-2018
+	// 100 units bought 2015 for Rs1,00,000; FMV(31-Jan-2018) = Rs5,00,000; sells at Rs10,00,000.
+	// Step-up: cost = max(1L, min(5L, 10L)) = 5L => gain 5L; taxable (5L - 1.25L) * 12.5% = 46,875.
+	l := lotUnits(d(2015, 3, 1), "100", 100_000, 1_000_000)
+	c := cfg.exitCost(f, []Lot{l}, d(2025, 6, 1), cfg.LTCGExemptionPaise)
+	if c.LTCGTaxPaise != 4_687_500 || c.ExemptionUsedPaise != 12_500_000 {
+		t.Fatalf("%+v", c)
+	}
+	// Without the NAV the full 9L gain is taxed: (9L - 1.25L) * 12.5% = 96,875.
+	f.GrandfatherNAV = decimal.Zero
+	if c := cfg.exitCost(f, []Lot{l}, d(2025, 6, 1), cfg.LTCGExemptionPaise); c.LTCGTaxPaise != 9_687_500 {
+		t.Fatalf("%+v", c)
+	}
+}
+
+func TestGrandfatheringNeverCreatesALoss(t *testing.T) {
+	cfg := DefaultTaxConfig(3000)
+	f := eqFund("A", 100, nil)
+	f.GrandfatherNAV = decimal.RequireFromString("5000")
+	// FMV (5L) is above the sale value (3L): cost becomes the 3L sale value => zero gain, not a 2L loss.
+	l := lotUnits(d(2015, 3, 1), "100", 100_000, 300_000)
+	if c := cfg.exitCost(f, []Lot{l}, d(2025, 6, 1), 0); c.TotalPaise != 0 {
+		t.Fatalf("%+v", c)
+	}
+}
+
+func TestGrandfatheringIgnoresPost2018AndNonEquity(t *testing.T) {
+	f := eqFund("A", 100, nil)
+	f.GrandfatherNAV = decimal.RequireFromString("5000")
+	post := lotUnits(d(2018, 2, 1), "100", 100_000, 1_000_000) // 1 Feb 2018 itself is NOT grandfathered
+	if got := grandfatheredCost(f, post); got != post.CostPaise {
+		t.Fatalf("post-cutoff lot stepped up: %d", got)
+	}
+	pre := lotUnits(d(2018, 1, 31), "100", 100_000, 1_000_000)
+	if got := grandfatheredCost(f, pre); got != 50_000_000 {
+		t.Fatalf("31 Jan 2018 lot should step up: %d", got)
+	}
+	f.EquityOriented = false
+	if got := grandfatheredCost(f, pre); got != pre.CostPaise {
+		t.Fatalf("non-equity stepped up: %d", got)
+	}
+}
+
+func TestJudgeNotesMissingGrandfatherNAV(t *testing.T) {
+	cfg := DefaultTaxConfig(3000)
+	exit, keep := eqFund("HI", 160, nil), eqFund("LO", 60, nil)
+	pos := Position{Lots: []Lot{lotUnits(d(2015, 3, 1), "100", 100_000, 1_000_000)}}
+	a := cfg.Judge(exit, keep, pos, d(2025, 6, 1), 0)
+	if len(a.Notes) != 1 || !strings.Contains(a.Notes[0], "31-Jan-2018") {
+		t.Fatalf("%+v", a.Notes)
+	}
+	exit.GrandfatherNAV = decimal.RequireFromString("5000")
+	if a := cfg.Judge(exit, keep, pos, d(2025, 6, 1), 0); len(a.Notes) != 0 {
+		t.Fatalf("unexpected note %+v", a.Notes)
+	}
+}
+
+func TestAnalyzeSharesTheExemptionAcrossExitFunds(t *testing.T) {
+	stocks := map[string]int64{"X": 2000, "Y": 2000}
+	a := eqFund("A", 160, stocks) // exit candidate, saving 100bps
+	c := eqFund("C", 150, stocks) // exit candidate, saving 90bps
+	b := eqFund("B", 60, stocks)  // the cheap fund both overlap with
+	// Each exit fund holds Rs10L with exactly Rs1.25L of long-term gain: alone it fits the exemption.
+	mk := func() Position { return Position{Lots: []Lot{lot(d(2023, 1, 10), 875_000, 1_000_000)}} }
+	pos := map[string]Position{"A": mk(), "C": mk(), "B": {Lots: []Lot{lot(d(2023, 1, 10), 100, 100)}}}
+
+	pairs, _, err := Analyze(context.Background(), []Fund{a, b, c}, pos, DefaultTaxConfig(3000), d(2025, 6, 1), 0, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	byExit := map[int]PairAction{}
+	for _, p := range pairs {
+		if p.OverlapBps > FlagThresholdBps {
+			byExit[p.Action.ExitFundIndex] = p.Action
+		}
+	}
+	first, second := byExit[0], byExit[2] // A (index 0) has the larger saving and goes first
+	if first.Verdict != ConsolidateNow || first.ExitNow.ExemptionUsedPaise != 12_500_000 || first.ExitNow.TotalPaise != 0 {
+		t.Fatalf("first exit should use the whole exemption tax-free: %+v", first)
+	}
+	if second.Verdict != Keep || second.ExitNow.LTCGTaxPaise == 0 {
+		t.Fatalf("second exit must see an empty exemption pool: %+v", second)
+	}
+}
+
+func TestAnalyzeExitFundInSeveralPairsDoesNotCompeteWithItself(t *testing.T) {
+	stocks := map[string]int64{"X": 2000, "Y": 2000}
+	a := eqFund("A", 160, stocks)
+	b := eqFund("B", 60, stocks)
+	c := eqFund("C", 70, stocks)
+	pos := map[string]Position{
+		"A": {Lots: []Lot{lot(d(2023, 1, 10), 875_000, 1_000_000)}}, // Rs1.25L gain: exactly the pool
+		"B": {Lots: []Lot{lot(d(2023, 1, 10), 100, 100)}},
+		"C": {Lots: []Lot{lot(d(2023, 1, 10), 100, 100)}},
+	}
+	pairs, _, _ := Analyze(context.Background(), []Fund{a, b, c}, pos, DefaultTaxConfig(3000), d(2025, 6, 1), 0, 2)
+	for _, p := range pairs {
+		if p.Action.ExitFundIndex == 0 && p.OverlapBps > FlagThresholdBps && p.Action.ExitNow.TotalPaise != 0 {
+			t.Fatalf("A is one redemption: both of its pairs must see the full pool, got %+v", p.Action)
+		}
+	}
+}

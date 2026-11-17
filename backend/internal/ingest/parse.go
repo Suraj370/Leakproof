@@ -107,10 +107,11 @@ type FundRow struct {
 	ExitLoadBps    int64
 	ExitLoadDays   int
 	TERAsOf        time.Time
+	GrandfatherNAV string // optional NAV on 31-Jan-2018 (decimal text); "" = unknown
 }
 
 // ParseFundsCSV columns: isin,amfi_code,name,amc,plan,category,equity_oriented,ter_bps,direct_ter_bps,
-// exit_load_bps,exit_load_days,ter_as_of(YYYY-MM-DD). Returns rows plus one error string per bad row.
+// exit_load_bps,exit_load_days,ter_as_of(YYYY-MM-DD) and optionally nav_2018_01_31. Returns rows plus one error string per bad row.
 func ParseFundsCSV(r io.Reader) ([]FundRow, []string, error) {
 	idx, rows, err := readCSV(r, "isin", "name", "amc", "plan", "category", "equity_oriented", "ter_bps", "ter_as_of")
 	if err != nil {
@@ -180,6 +181,12 @@ func parseFundRow(row []string, idx map[string]int) (FundRow, error) {
 	}
 	if f.TERAsOf, err = time.Parse("2006-01-02", col(row, idx, "ter_as_of")); err != nil {
 		return f, errors.New("ter_as_of must be YYYY-MM-DD")
+	}
+	if v := col(row, idx, "nav_2018_01_31"); v != "" {
+		if n, err := decimal.NewFromString(v); err != nil || !n.IsPositive() || n.GreaterThan(decimal.NewFromInt(1_000_000)) {
+			return f, errors.New("nav_2018_01_31 must be a positive decimal")
+		}
+		f.GrandfatherNAV = v
 	}
 	return f, nil
 }

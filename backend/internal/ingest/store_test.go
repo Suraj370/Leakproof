@@ -256,3 +256,32 @@ func TestIntegrationAMFIEnrich(t *testing.T) {
 		t.Fatalf("second run matched %d", matched)
 	}
 }
+
+func TestIntegrationGrandfatherNAVRoundTrip(t *testing.T) {
+	pool := tempDB(t)
+	ctx := context.Background()
+	withNAV := strings.Replace(goodFunds, "ter_as_of\n", "ter_as_of,nav_2018_01_31\n", 1)
+	withNAV = strings.Replace(withNAV, "2025-03-31\nINF179", "2025-03-31,41.2345\nINF179", 1)
+	withNAV = strings.Replace(withNAV, "0,0,2025-03-31\n", "0,0,2025-03-31,\n", 1)
+	if err := UpsertFunds(ctx, pool, mustFunds(t, withNAV)); err != nil {
+		t.Fatal(err)
+	}
+	c, err := catalog.Load(ctx, pool)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := c.Funds["INF000TEST01"].GrandfatherNAV.String(); got != "41.2345" {
+		t.Fatalf("nav = %q", got)
+	}
+	if !c.Funds["INF179K01AA1"].GrandfatherNAV.IsZero() {
+		t.Fatal("blank NAV must stay unknown")
+	}
+	// re-importing without the column must not erase a known NAV
+	if err := UpsertFunds(ctx, pool, mustFunds(t, goodFunds)); err != nil {
+		t.Fatal(err)
+	}
+	c, _ = catalog.Load(ctx, pool)
+	if c.Funds["INF000TEST01"].GrandfatherNAV.String() != "41.2345" {
+		t.Fatal("NAV erased by a later import that omitted it")
+	}
+}

@@ -36,16 +36,17 @@ func UpsertFunds(ctx context.Context, pool *pgxpool.Pool, rows []FundRow) error 
 		for _, f := range rows {
 			_, err := tx.Exec(ctx, `
 				INSERT INTO mutual_funds (isin, amfi_code, name, amc, plan, category, equity_oriented,
-				                          ter_bps, direct_ter_bps, exit_load_bps, exit_load_days, ter_as_of)
-				VALUES ($1, NULLIF($2,0), $3, $4, $5::plan_type, $6, $7, $8, $9, $10, $11, $12)
+				                          ter_bps, direct_ter_bps, exit_load_bps, exit_load_days, ter_as_of, nav_2018_01_31)
+				VALUES ($1, NULLIF($2,0), $3, $4, $5::plan_type, $6, $7, $8, $9, $10, $11, $12, NULLIF($13,'')::numeric)
 				ON CONFLICT (isin) DO UPDATE SET
 				  amfi_code = COALESCE(EXCLUDED.amfi_code, mutual_funds.amfi_code),
 				  name = EXCLUDED.name, amc = EXCLUDED.amc, plan = EXCLUDED.plan, category = EXCLUDED.category,
 				  equity_oriented = EXCLUDED.equity_oriented, ter_bps = EXCLUDED.ter_bps,
 				  direct_ter_bps = EXCLUDED.direct_ter_bps, exit_load_bps = EXCLUDED.exit_load_bps,
-				  exit_load_days = EXCLUDED.exit_load_days, ter_as_of = EXCLUDED.ter_as_of, updated_at = now()`,
+				  exit_load_days = EXCLUDED.exit_load_days, ter_as_of = EXCLUDED.ter_as_of,
+				  nav_2018_01_31 = COALESCE(EXCLUDED.nav_2018_01_31, mutual_funds.nav_2018_01_31), updated_at = now()`,
 				f.ISIN, f.AMFICode, f.Name, f.AMC, f.Plan, f.Category, f.EquityOriented,
-				f.TERBps, f.DirectTERBps, f.ExitLoadBps, f.ExitLoadDays, f.TERAsOf)
+				f.TERBps, f.DirectTERBps, f.ExitLoadBps, f.ExitLoadDays, f.TERAsOf, f.GrandfatherNAV)
 			if err != nil {
 				return fmt.Errorf("fund %s: %w", f.ISIN, err)
 			}

@@ -11,6 +11,7 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	"github.com/shopspring/decimal"
 )
 
 func TestMarshalRoundTripKeepsHoldings(t *testing.T) {
@@ -133,5 +134,23 @@ func TestIntegrationLoadMatchesSeed(t *testing.T) {
 		if !reflect.DeepEqual(g.Rules, w.Rules) || !reflect.DeepEqual(g.GroupCapPoints, w.GroupCapPoints) {
 			t.Errorf("card %s rules/caps differ:\n got %+v %v\nwant %+v %v", w.ID, g.Rules, g.GroupCapPoints, w.Rules, w.GroupCapPoints)
 		}
+	}
+}
+
+func TestCacheRoundTripKeepsGrandfatherNAV(t *testing.T) {
+	seed := Seed()
+	f := seed.Funds["INFDEMO00001"]
+	f.GrandfatherNAV = decimal.RequireFromString("123.4567")
+	seed.Funds["INFDEMO00001"] = f
+	b, err := Marshal(seed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := Unmarshal(b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !got.Funds["INFDEMO00001"].GrandfatherNAV.Equal(f.GrandfatherNAV) || !got.Funds["INFDEMO00002"].GrandfatherNAV.IsZero() {
+		t.Fatalf("NAV not preserved: %v", got.Funds["INFDEMO00001"].GrandfatherNAV)
 	}
 }

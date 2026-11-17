@@ -40,7 +40,13 @@ export interface CardYield {
 
 export type Verdict = 'CONSOLIDATE_NOW' | 'HOLD_UNTIL_LTCG_DATE' | 'KEEP';
 
-export interface ExitCost { stcgTaxPaise: Paise; ltcgTaxPaise: Paise; exitLoadPaise: Paise; totalPaise: Paise }
+export interface ExitCost {
+  stcgTaxPaise: Paise;
+  ltcgTaxPaise: Paise;
+  exitLoadPaise: Paise;
+  totalPaise: Paise;
+  exemptionUsedPaise: Paise; // part of the shared Rs1.25L LTCG exemption this exit consumes
+}
 
 export interface PairAction {
   verdict: Verdict;
@@ -49,6 +55,7 @@ export interface PairAction {
   exitNow: ExitCost;
   annualSavingPaise: Paise;
   holdUntil?: string;
+  notes?: string[];
 }
 
 export interface SharedHolding {

@@ -212,3 +212,18 @@ func TestParseCardsRejects(t *testing.T) {
 		t.Error("duplicate slug accepted")
 	}
 }
+
+func TestParseFundsGrandfatherNAV(t *testing.T) {
+	csv := "isin,name,amc,plan,category,equity_oriented,ter_bps,ter_as_of,nav_2018_01_31\n" +
+		"INF000TEST01,A,X,DIRECT,Large Cap,true,60,2025-03-31,41.2345\n" +
+		"INF000TEST02,B,X,DIRECT,Large Cap,true,60,2025-03-31,\n" +
+		"INF000TEST03,C,X,DIRECT,Large Cap,true,60,2025-03-31,-5\n" +
+		"INF000TEST04,D,X,DIRECT,Large Cap,true,60,2025-03-31,abc\n"
+	rows, bad, err := ParseFundsCSV(strings.NewReader(csv))
+	if err != nil || len(rows) != 2 || len(bad) != 2 {
+		t.Fatalf("%v rows=%d bad=%v", err, len(rows), bad)
+	}
+	if rows[0].GrandfatherNAV != "41.2345" || rows[1].GrandfatherNAV != "" {
+		t.Fatalf("%+v", rows)
+	}
+}

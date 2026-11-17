@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/shopspring/decimal"
 
 	"leakproof/internal/cards"
 	"leakproof/internal/mf"
@@ -16,6 +17,7 @@ type fundJSON struct {
 	mf.Fund
 	Holdings     map[string]int64  `json:"holdings"`
 	HoldingNames map[string]string `json:"holdingNames"`
+	GrandfatherN string            `json:"grandfatherNav"` // decimal string; "" = unknown
 }
 
 type snapshot struct {
@@ -27,7 +29,11 @@ type snapshot struct {
 func Marshal(c *Catalog) ([]byte, error) {
 	s := snapshot{Cards: c.Cards}
 	for _, f := range c.Funds {
-		s.Funds = append(s.Funds, fundJSON{Fund: f, Holdings: f.Holdings, HoldingNames: f.HoldingNames})
+		fj := fundJSON{Fund: f, Holdings: f.Holdings, HoldingNames: f.HoldingNames}
+		if !f.GrandfatherNAV.IsZero() {
+			fj.GrandfatherN = f.GrandfatherNAV.String()
+		}
+		s.Funds = append(s.Funds, fj)
 	}
 	sort.Slice(s.Funds, func(i, j int) bool { return s.Funds[i].ISIN < s.Funds[j].ISIN })
 	return json.Marshal(s)
@@ -41,6 +47,13 @@ func Unmarshal(b []byte) (*Catalog, error) {
 	c := &Catalog{Funds: make(map[string]mf.Fund, len(s.Funds)), Cards: s.Cards}
 	for _, f := range s.Funds {
 		f.Fund.Holdings, f.Fund.HoldingNames = f.Holdings, f.HoldingNames
+		if f.GrandfatherN != "" {
+			n, err := decimal.NewFromString(f.GrandfatherN)
+			if err != nil {
+				return nil, err
+			}
+			f.Fund.GrandfatherNAV = n
+		}
 		c.Funds[f.ISIN] = f.Fund
 	}
 	return c, nil

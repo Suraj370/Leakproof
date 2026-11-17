@@ -93,6 +93,9 @@ function PairDetail({ report, pair }: { report: MFReport; pair: PairResult }) {
           )}
         </p>
       )}
+      {pair.action.notes?.map((n) => (
+        <p key={n} className="rounded bg-amber-50 p-2 text-xs text-amber-900">{n}</p>
+      ))}
       <ul className="divide-y text-sm">
         {pair.shared.map((s) => (
           <li key={s.stockIsin} className="flex justify-between py-1.5">

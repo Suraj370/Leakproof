@@ -88,8 +88,11 @@ func ComputeOverlaps(ctx context.Context, funds []Fund, workers int) ([]PairResu
 	return out, nil
 }
 
-// Analyze flags >30% pairs, picks the higher-TER fund as the exit candidate and attaches a tax-aware
-// verdict. It also returns the annual fee leak (each exit fund counted once, at its largest saving).
+// Analyze flags >30% pairs, picks the higher-TER fund of each as the exit candidate and attaches a
+// tax-aware verdict. The Rs1.25L LTCG exemption is ONE pool per financial year, so flagged pairs are judged
+// in descending order of annual saving and each CONSOLIDATE_NOW exit consumes part of the pool. An exit
+// fund that appears in several pairs is a single redemption: it consumes the pool once and never competes
+// with itself. Returns the pairs and the annual fee leak (each exit fund counted once, at its largest saving).
 func Analyze(ctx context.Context, funds []Fund, pos map[string]Position, cfg TaxConfig,
 	now time.Time, realisedLTCG int64, workers int) ([]PairResult, int64, error) {
 
@@ -97,7 +100,12 @@ func Analyze(ctx context.Context, funds []Fund, pos map[string]Position, cfg Tax
 	if err != nil {
 		return nil, 0, err
 	}
-	leak := map[int]int64{}
+
+	type flagged struct {
+		k, keepI, exitI int
+		saving          int64
+	}
+	var order []flagged
 	for k := range pairs {
 		p := &pairs[k]
 		if p.OverlapBps <= FlagThresholdBps {
@@ -107,10 +115,28 @@ func Analyze(ctx context.Context, funds []Fund, pos map[string]Position, cfg Tax
 		if funds[p.A].TERBps > funds[p.B].TERBps {
 			keepI, exitI = p.B, p.A
 		}
-		p.Action = cfg.Judge(funds[exitI], funds[keepI], pos[funds[exitI].ISIN], now, realisedLTCG)
-		p.Action.ExitFundIndex, p.Action.KeepFundIndex = exitI, keepI
-		if p.Action.Verdict != Keep {
-			leak[exitI] = max(leak[exitI], p.Action.AnnualSavingPaise)
+		saving := bps(pos[funds[exitI].ISIN].ValuePaise(), funds[exitI].TERBps-funds[keepI].TERBps)
+		order = append(order, flagged{k, keepI, exitI, saving})
+	}
+	sort.SliceStable(order, func(i, j int) bool { return order[i].saving > order[j].saving })
+
+	remaining := max(0, cfg.LTCGExemptionPaise-realisedLTCG)
+	usedBy := map[int]int64{} // exit fund -> exemption its CONSOLIDATE_NOW consumed
+	counted := map[int]bool{}
+	leak := map[int]int64{}
+	for _, f := range order {
+		p := &pairs[f.k]
+		avail := remaining + usedBy[f.exitI] // an exit already counted does not compete with itself
+		act := cfg.Judge(funds[f.exitI], funds[f.keepI], pos[funds[f.exitI].ISIN], now, cfg.LTCGExemptionPaise-avail)
+		act.ExitFundIndex, act.KeepFundIndex = f.exitI, f.keepI
+		p.Action = act
+		if act.Verdict == ConsolidateNow && !counted[f.exitI] {
+			remaining -= act.ExitNow.ExemptionUsedPaise
+			usedBy[f.exitI] = act.ExitNow.ExemptionUsedPaise
+			counted[f.exitI] = true
+		}
+		if act.Verdict != Keep {
+			leak[f.exitI] = max(leak[f.exitI], act.AnnualSavingPaise)
 		}
 	}
 	var total int64

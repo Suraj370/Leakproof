@@ -37,6 +37,8 @@ type Fund struct {
 	ExitLoadBps    int64             `json:"exitLoadBps"`
 	ExitLoadDays   int               `json:"exitLoadDays"`
 	EquityOriented bool              `json:"equityOriented"`
+	// GrandfatherNAV is the fund NAV on 31-Jan-2018 (zero = unknown), used to step up the cost of pre-Feb-2018 units.
+	GrandfatherNAV decimal.Decimal `json:"-"`
 	Holdings       map[string]int64  `json:"-"` // stock ISIN -> weight bps
 	HoldingNames   map[string]string `json:"-"`
 }

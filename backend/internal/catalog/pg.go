@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/shopspring/decimal"
 
 	"leakproof/internal/cards"
 	"leakproof/internal/mf"
@@ -17,17 +18,24 @@ func Load(ctx context.Context, pool *pgxpool.Pool) (*Catalog, error) {
 	c := &Catalog{Funds: map[string]mf.Fund{}}
 
 	rows, err := pool.Query(ctx, `
-		SELECT isin, name, plan::text, ter_bps, COALESCE(direct_ter_bps, ter_bps), exit_load_bps, exit_load_days, equity_oriented
+		SELECT isin, name, plan::text, ter_bps, COALESCE(direct_ter_bps, ter_bps), exit_load_bps, exit_load_days, equity_oriented,
+		       COALESCE(nav_2018_01_31::text, '')
 		FROM mutual_funds`)
 	if err != nil {
 		return nil, fmt.Errorf("funds: %w", err)
 	}
 	for rows.Next() {
 		var f mf.Fund
-		var plan string
-		if err := rows.Scan(&f.ISIN, &f.Name, &plan, &f.TERBps, &f.DirectTERBps, &f.ExitLoadBps, &f.ExitLoadDays, &f.EquityOriented); err != nil {
+		var plan, nav string
+		if err := rows.Scan(&f.ISIN, &f.Name, &plan, &f.TERBps, &f.DirectTERBps, &f.ExitLoadBps, &f.ExitLoadDays, &f.EquityOriented, &nav); err != nil {
 			rows.Close()
 			return nil, fmt.Errorf("funds scan: %w", err)
+		}
+		if nav != "" {
+			if f.GrandfatherNAV, err = decimal.NewFromString(nav); err != nil {
+				rows.Close()
+				return nil, fmt.Errorf("fund %s nav_2018_01_31: %w", f.ISIN, err)
+			}
 		}
 		f.ISIN = strings.TrimSpace(f.ISIN)
 		f.Plan = mf.PlanType(plan)
